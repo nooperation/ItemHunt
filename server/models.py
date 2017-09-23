@@ -61,6 +61,7 @@ class Item(models.Model):
     points = models.IntegerField()
     enabled = models.BooleanField()
     region = models.ForeignKey(Region, on_delete=models.DO_NOTHING)
+    hunt = models.ForeignKey(Hunt, on_delete=models.DO_NOTHING)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
@@ -78,4 +79,5 @@ class Transaction(models.Model):
     item_z = models.FloatField()
     player = models.ForeignKey(Player, on_delete=models.DO_NOTHING)
     region = models.ForeignKey(Region, on_delete=models.DO_NOTHING)
+    hunt = models.ForeignKey(Hunt, on_delete=models.DO_NOTHING)
     created_on = models.DateTimeField(auto_now_add=True)
