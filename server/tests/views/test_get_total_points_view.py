@@ -65,7 +65,7 @@ class GetTotalPointsView(TestCase):
             player_uuid=self.first_player.uuid,
         )
 
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(response.json()['total_points'], self.first_transaction.points)
@@ -76,7 +76,7 @@ class GetTotalPointsView(TestCase):
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(response.json()['total_points'], 0)
@@ -87,13 +87,13 @@ class GetTotalPointsView(TestCase):
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
-        server_data.player_name = None
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        server_data['player_name'] = None
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
-        server_data.player_name = 'a'*300
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        server_data['player_name'] = 'a'*300
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
@@ -103,12 +103,12 @@ class GetTotalPointsView(TestCase):
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
-        server_data.player_uuid = None
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        server_data['player_uuid'] = None
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
-        server_data.player_uuid = 'a' * 300
-        response = self.post_with_metadata(reverse('server:activate'), server_data)
+        server_data['player_uuid'] = 'a' * 300
+        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))

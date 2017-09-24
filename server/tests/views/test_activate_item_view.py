@@ -95,7 +95,7 @@ class ActivateItemView(TestCase):
         )
 
     def test_activate_credit(self):
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(Transaction.objects.count(), 1)
@@ -116,24 +116,24 @@ class ActivateItemView(TestCase):
 
     def test_multiple_activate_credit(self):
         self.server_data['points'] = 15
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(self.first_player.get_total_points(self.hunt), 15)
 
         self.server_data['points'] = 35
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(self.first_player.get_total_points(self.hunt), 50)
 
     def test_double_activate_credit(self):
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(Transaction.objects.count(), 1)
 
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
         self.assertEquals(Transaction.objects.count(), 1)
@@ -143,7 +143,7 @@ class ActivateItemView(TestCase):
     def test_activate_new_region(self):
         self.server_data['points'] = 100
         self.region.name = 'New Region'
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
         self.assertEquals(self.first_player.get_total_points(self.hunt), 100)
@@ -154,12 +154,12 @@ class ActivateItemView(TestCase):
         self.server_data['points'] = 100
 
         self.region.name = 'a'*300
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
         self.region.name = None
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
@@ -168,7 +168,7 @@ class ActivateItemView(TestCase):
     def test_activate_new_item(self):
         self.server_data['points'] = 100
         self.item_creditA.uuid = 'FFFFEEEE-FAFA-AFAF-BABA-CAAAAAAAAAAA'
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
         self.assertEquals(Item.objects.get(uuid=self.item_creditA.uuid).uuid, self.item_creditA.uuid)
@@ -179,12 +179,12 @@ class ActivateItemView(TestCase):
         self.server_data['points'] = 100
 
         self.item_creditA.uuid = None
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
         self.item_creditA.uuid = 'a'*100
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
@@ -194,7 +194,7 @@ class ActivateItemView(TestCase):
         self.server_data['player_name'] = 'New Player'
         self.server_data['player_uuid'] = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
 
@@ -205,20 +205,20 @@ class ActivateItemView(TestCase):
 
     def test_activate_prize(self):
         self.server_data['points'] = 100
-        self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
 
         self.server_data['points'] = 25
-        response = self.post_with_metadata(reverse('server:activate'), self.item_prizeA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_prizeA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(self.first_player.get_total_points(self.hunt), 75)
 
     def test_activate_prize_too_expensive(self):
         self.server_data['points'] = 15
-        self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
 
         self.server_data['points'] = 25
-        response = self.post_with_metadata(reverse('server:activate'), self.item_prizeA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_prizeA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
@@ -226,15 +226,15 @@ class ActivateItemView(TestCase):
 
     def test_activate_invalid_hunt_token(self):
         self.server_data['points'] = 15
-        self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
 
         self.hunt.private_token = 'a' * 32
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
         self.hunt.private_token = None
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
@@ -242,15 +242,15 @@ class ActivateItemView(TestCase):
 
     def test_activate_invalid_hunt_name(self):
         self.server_data['points'] = 15
-        self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
 
         self.hunt.name = 'new hunt name'
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
         self.hunt.name = None
-        response = self.post_with_metadata(reverse('server:activate'), self.item_creditA, self.server_data)
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
 
