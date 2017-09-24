@@ -27,6 +27,26 @@ def get_lsl_headers(request):
         'position_z': position[2],
     }
 
+def report_invalid_activation(message, request):
+    sl_header = get_lsl_headers(request)
+    player_name = request.POST.get('player_name')
+    player_uuid = request.POST.get('player_uuid')
+    points = request.POST.get('points')
+
+    object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
+    object_region = request.META['HTTP_X_SECONDLIFE_REGION']
+
+    logging.info(f"{message} "
+                 f"points='{points}' "
+                 f"player='{player_name}' "
+                 f"player_uuid='{player_uuid}' "
+                 f"region='{object_region}' "
+                 f"object_position='{object_position}' "
+                 f"object_key='{sl_header['object_key']}' "
+                 f"object_name='{sl_header['object_name']}' "
+                 f"owner_key='{sl_header['owner_key']}' "
+                 f"address='{request.META['REMOTE_ADDR']}'")
+
 def json_success(message):
     return {JSON_TAG_RESULT: JSON_RESULT_SUCCESS, JSON_TAG_MESSAGE: message}
 
@@ -42,27 +62,6 @@ class IndexView(generic.View):
 
 
 class ActivateItemView(generic.View):
-    @staticmethod
-    def report_invalid_activation(message, request):
-        sl_header = get_lsl_headers(request)
-        player_name = request.POST.get('player_name')
-        player_uuid = request.POST.get('player_uuid')
-        points = request.POST.get('points')
-
-        object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
-        object_region = request.META['HTTP_X_SECONDLIFE_REGION']
-
-        logging.info(f"{message} "
-                     f"points='{points}' "
-                     f"player='{player_name}' "
-                     f"player_uuid='{player_uuid}' "
-                     f"region='{object_region}' "
-                     f"object_position='{object_position}' "
-                     f"object_key='{sl_header['object_key']}' "
-                     f"object_name='{sl_header['object_name']}' "
-                     f"owner_key='{sl_header['owner_key']}' "
-                     f"address='{request.META['REMOTE_ADDR']}'")
-
     def post(self, request):
         player_name = ''
         player_uuid = ''
@@ -80,13 +79,13 @@ class ActivateItemView(generic.View):
             try:
                 hunt = Hunt.objects.get(private_token=private_token)
             except Hunt.DoesNotExist:
-                self.report_invalid_activation("Invalid hunt", request)
+                report_invalid_activation("Invalid hunt", request)
                 return JsonResponse(json_error('Invalid hunt specified'))
 
             try:
                 item = Item.objects.get(uuid=sl_header['object_key'], hunt=hunt)
             except Item.DoesNotExist:
-                self.report_invalid_activation("Invalid object", request)
+                report_invalid_activation("Invalid object", request)
                 return JsonResponse(json_error('Invalid item'))
 
             try:
@@ -97,7 +96,7 @@ class ActivateItemView(generic.View):
                     region.full_clean()
                     region.save()
                 except ValidationError:
-                    self.report_invalid_activation("invalid region", request)
+                    report_invalid_activation("invalid region", request)
                     return JsonResponse(json_error('Invalid region'))
 
             try:
@@ -108,7 +107,7 @@ class ActivateItemView(generic.View):
                     player.full_clean()
                     player.save()
                 except ValidationError:
-                    self.report_invalid_activation("invalid player", request)
+                    report_invalid_activation("invalid player", request)
                     return JsonResponse(json_error('Invalid player'))
 
             if item.type == Item.TYPE_CREDIT:
@@ -137,14 +136,61 @@ class ActivateItemView(generic.View):
                 new_transaction.full_clean()
                 new_transaction.save()
             except ValidationError:
-                self.report_invalid_activation("invalid transaction", request)
+                report_invalid_activation("invalid transaction", request)
                 return JsonResponse(json_error('Invalid transaction'))
 
             total_points = player.get_total_points(hunt)
             return JsonResponse(json_success({'points': points, 'total_points': total_points}))
         except Exception:
             logging.exception("Failed to activate player '{}' with uuid '{}'".format(player_name, player_uuid))
-            self.report_invalid_activation("Server error", request)
+            report_invalid_activation("Server error", request)
+            return JsonResponse(json_error('Server error'))
+
+
+class RegisterItemView(generic.View):
+    def post(self, request):
+        try:
+            sl_header = get_lsl_headers(request)
+            private_token = request.POST.get('private_token')
+            points = request.POST.get('points')
+            item_type = request.POST.get('type')
+
+            try:
+                hunt = Hunt.objects.get(private_token=private_token)
+            except Hunt.DoesNotExist:
+                report_invalid_activation("Invalid hunt", request)
+                return JsonResponse(json_error('Invalid hunt specified'))
+
+            try:
+                region = Region.objects.get(name=sl_header['region'])
+            except Region.DoesNotExist:
+                region = Region(name=sl_header['region'])
+                try:
+                    region.full_clean()
+                    region.save()
+                except ValidationError:
+                    report_invalid_activation("invalid region", request)
+                    return JsonResponse(json_error('Invalid region'))
+
+            item_count = Item.objects.filter(uuid=sl_header['object_key'], hunt=hunt).count()
+            if item_count > 0:
+                return JsonResponse(json_success('OK'))
+
+            new_item = Item.objects.create(
+                uuid=sl_header['object_key'],
+                name=sl_header['object_name'],
+                type=item_type,
+                position_x=sl_header['position_x'],
+                position_y=sl_header['position_y'],
+                position_z=sl_header['position_z'],
+                points=points,
+                enabled=True,
+                region=region,
+                hunt=hunt
+            )
+            return JsonResponse(json_success('OK'))
+        except Exception:
+            logging.exception("Failed to register item")
             return JsonResponse(json_error('Server error'))
 
 
