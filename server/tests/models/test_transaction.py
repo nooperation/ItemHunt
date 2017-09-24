@@ -18,6 +18,18 @@ class TransactionTests(TransactionTestCase):
             public_token='aduosJYPT1bU4tS3YvkIeN_D04ppO2Gk0eByAYQkZqMd',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
         )
+        self.item_prizeA = Item.objects.create(
+            uuid='33333333-3333-3333-3333-333333333333',
+            name='First Prize (cost: 10pts)',
+            type=Item.TYPE_PRIZE,
+            position_x=5.00,
+            position_y=110.00,
+            position_z=35.00,
+            points=10,
+            enabled=True,
+            region=self.region,
+            hunt=self.hunt
+        )
         self.transaction = Transaction.objects.create(
             points=15,
             player_x=0.0,
@@ -28,7 +40,8 @@ class TransactionTests(TransactionTestCase):
             item_z=125.0,
             player=self.player,
             region=self.region,
-            hunt=self.hunt
+            hunt=self.hunt,
+            item=self.item_prizeA
         )
 
     def test_normal_creation(self):

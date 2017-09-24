@@ -20,3 +20,13 @@ def json_error(message):
 class IndexView(generic.View):
     def get(self, request):
         return JsonResponse(json_success({'servers_list': 'stuff goes here'}))
+
+
+class ActivateItemView(generic.View):
+    def get(self, request):
+        return JsonResponse(json_success({'name': 'ActivateItem'}))
+
+
+class GetTotalPointsView(generic.View):
+    def get(self, request):
+        return JsonResponse(json_success({'total_points': 123}))
