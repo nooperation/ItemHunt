@@ -1,5 +1,7 @@
 from django.db import models
+from django.db.models import Sum
 from django.core.validators import RegexValidator, MinLengthValidator
+from django.contrib.auth.models import User
 import os
 import base64
 
@@ -52,6 +54,9 @@ class Region(models.Model):
 class Player(models.Model):
     def __str__(self):
         return self.name
+
+    def get_total_points(self, hunt):
+        return Transaction.objects.filter(player=self, hunt=hunt).aggregate(total_points=Sum('points'))['total_points']
 
     uuid = models.CharField(max_length=36, unique=True, validators=[
         RegexValidator(
