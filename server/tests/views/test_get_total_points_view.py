@@ -33,6 +33,18 @@ class GetTotalPointsView(TestCase):
             uuid='41f94400-2a3e-408a-9b80-1774724f62af',
             name='First Agent'
         )
+        self.item_prizeA = Item.objects.create(
+            uuid='33333333-3333-3333-3333-333333333333',
+            name='First Prize (cost: 10pts)',
+            type=Item.TYPE_PRIZE,
+            position_x=5.00,
+            position_y=110.00,
+            position_z=35.00,
+            points=10,
+            enabled=True,
+            region=self.region,
+            hunt=self.hunt
+        )
         self.first_transaction = Transaction.objects.create(
             points=15,
             player_x=0.0,
@@ -43,7 +55,8 @@ class GetTotalPointsView(TestCase):
             item_z=125.0,
             player=self.first_player,
             region=self.region,
-            hunt=self.hunt
+            hunt=self.hunt,
+            item=self.item_prizeA
         )
 
     def post_with_metadata(self, address, params):
@@ -61,54 +74,62 @@ class GetTotalPointsView(TestCase):
 
     def test_known_user(self):
         server_data = dict(
+            private_token=self.hunt.private_token,
             player_name=self.first_player.name,
             player_uuid=self.first_player.uuid,
         )
 
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['total_points'], self.first_transaction.points)
+        self.assertEquals(response.json()['payload']['total_points'], self.first_transaction.points)
 
     def test_unknown_user(self):
         server_data = dict(
+            private_token=self.hunt.private_token,
             player_name='Unknown user',
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['total_points'], 0)
+        self.assertEquals(response.json()['payload']['total_points'], 0)
 
     def test_invalid_player_name(self):
         server_data = dict(
+            private_token=self.hunt.private_token,
             player_name='Unknown user',
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
         server_data['player_name'] = None
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_error(response.json()))
+        self.assertTrue(is_json_success(response.json()))
+        self.assertEquals(response.json()['payload']['total_points'], 0)
 
         server_data['player_name'] = 'a'*300
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_error(response.json()))
+        self.assertTrue(is_json_success(response.json()))
+        self.assertEquals(response.json()['payload']['total_points'], 0)
 
     def test_invalid_player_uuid(self):
         server_data = dict(
+            private_token=self.hunt.private_token,
             player_name='Unknown user',
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
         server_data['player_uuid'] = None
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_error(response.json()))
+        self.assertTrue(is_json_success(response.json()))
+        self.assertEquals(response.json()['payload']['total_points'], 0)
 
         server_data['player_uuid'] = 'a' * 300
-        response = self.post_with_metadata(reverse('server:activate_item'), server_data)
+        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_error(response.json()))
+        self.assertTrue(is_json_success(response.json()))
+        self.assertEquals(response.json()['payload']['total_points'], 0)
