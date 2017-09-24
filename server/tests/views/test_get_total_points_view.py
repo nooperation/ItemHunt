@@ -23,7 +23,7 @@ def is_json_error(result_json):
 
 class GetTotalPointsView(TestCase):
     def setUp(self):
-        self.region = Region.objects.create(name='First Region')
+        self.region = Region.objects.create(name='FirstRegion')
         self.hunt = Hunt.objects.create(
             name='First hunt',
             public_token='aduosJYPT1bU4tS3YvkIeN_D04ppO2Gk0eByAYQkZqMd',
