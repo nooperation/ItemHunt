@@ -36,16 +36,18 @@ def report_invalid_activation(message, request):
     object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
     object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-    logging.info(f"{message} "
-                 f"points='{points}' "
-                 f"player='{player_name}' "
-                 f"player_uuid='{player_uuid}' "
-                 f"region='{object_region}' "
-                 f"object_position='{object_position}' "
-                 f"object_key='{sl_header['object_key']}' "
-                 f"object_name='{sl_header['object_name']}' "
-                 f"owner_key='{sl_header['owner_key']}' "
-                 f"address='{request.META['REMOTE_ADDR']}'")
+    logging.info("{} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+       message,
+       points,
+       player_name,
+       player_uuid,
+       object_region,
+       object_position,
+       sl_header['object_key'],
+       sl_header['object_name'],
+       sl_header['owner_key'],
+       request.META['REMOTE_ADDR']
+    ))
 
 def json_success(message):
     return {JSON_TAG_RESULT: JSON_RESULT_SUCCESS, JSON_TAG_MESSAGE: message}
