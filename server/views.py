@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views import generic
 from django.core.exceptions import ValidationError
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from server.models import *
 import logging
 
@@ -63,6 +65,7 @@ class IndexView(generic.View):
         return JsonResponse(json_success({'servers_list': 'stuff goes here'}))
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class ActivateItemView(generic.View):
     def post(self, request):
         player_name = ''
@@ -149,6 +152,7 @@ class ActivateItemView(generic.View):
             return JsonResponse(json_error('Server error'))
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterItemView(generic.View):
     def post(self, request):
         try:
@@ -196,6 +200,7 @@ class RegisterItemView(generic.View):
             return JsonResponse(json_error('Server error'))
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class GetTotalPointsView(generic.View):
     def post(self, request):
         player_name = ''
