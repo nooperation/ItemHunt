@@ -11,7 +11,6 @@ from ...models import *
 from ...views import JSON_RESULT_ERROR
 from ...views import JSON_RESULT_SUCCESS
 from ...views import JSON_TAG_RESULT
-from ...views import JSON_TAG_MESSAGE
 
 
 def is_json_success(result_json):
