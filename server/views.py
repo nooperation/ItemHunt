@@ -6,12 +6,16 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from server.models import *
 import logging
+import re
 
 JSON_RESULT_SUCCESS = 'success'
 JSON_RESULT_ERROR = 'error'
 JSON_TAG_RESULT = 'result'
 JSON_TAG_PAYLOAD = 'payload'
 JSON_TAG_TARGET_UUID = 'target_uuid'
+
+NULL_KEY = '00000000-0000-0000-0000-000000000000'
+PATTERN_KEY = '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
 
 def get_lsl_headers(request):
     position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION'][1:-1].split(', ')
@@ -45,6 +49,10 @@ def json_success_to(target_uuid, message):
 
 def json_error_to(target_uuid, message):
     return {JSON_TAG_RESULT: JSON_RESULT_ERROR, JSON_TAG_PAYLOAD: message, JSON_TAG_TARGET_UUID: target_uuid}
+
+
+def is_valid_uuid(uuid):
+    return re.match(PATTERN_KEY, uuid, re.I) is not None
 
 
 # Create your models here.
@@ -234,6 +242,8 @@ class RegisterItemView(generic.View):
         ))
 
 
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class GetTotalPointsView(generic.View):
     def post(self, request):
@@ -243,18 +253,22 @@ class GetTotalPointsView(generic.View):
             private_token = request.POST.get('private_token')
             player_uuid = request.POST.get('player_uuid')
 
+            if not is_valid_uuid(player_uuid):
+                logging.warning("Invalid UUID passed to GetTotalPointsView: '{}'".format(player_uuid))
+                return JsonResponse(json_error('Server error'))
+
             try:
                 hunt = Hunt.objects.get(private_token=private_token)
             except Hunt.DoesNotExist:
-                return JsonResponse(json_error('Invalid hunt specified'))
+                return JsonResponse(json_error_to(player_uuid, 'Invalid hunt specified'))
 
             try:
                 player = Player.objects.get(uuid=player_uuid)
             except Player.DoesNotExist:
-                return JsonResponse(json_success({'total_points': 0}))
+                return JsonResponse(json_success_to(player_uuid, {'total_points': 0}))
 
             total_points = player.get_total_points(hunt)
-            return JsonResponse(json_success({'total_points': total_points}))
+            return JsonResponse(json_success_to(player_uuid, {'total_points': total_points}))
         except Exception:
             logging.exception("Failed to get total points for uuid '{}'".format(player_uuid))
-            return JsonResponse(json_error('Server error'))
+            return JsonResponse(json_error_to(NULL_KEY, 'Server error'))
