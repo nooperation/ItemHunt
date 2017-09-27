@@ -105,7 +105,7 @@ class Item(models.Model):
 
 class Transaction(models.Model):
     def __str__(self):
-        return self.created_on
+        return '{} - {}'.format(self.created_on.strftime("%Y-%m-%d %H:%M:%S"), self.player.name)
 
     points = models.IntegerField()
     player_x = models.FloatField()
