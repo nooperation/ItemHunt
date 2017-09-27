@@ -29,6 +29,7 @@ def get_lsl_headers(request):
         'position_z': position[2],
     }
 
+
 def report_invalid_activation(message, request):
     sl_header = get_lsl_headers(request)
     player_name = request.POST.get('player_name')
@@ -38,7 +39,7 @@ def report_invalid_activation(message, request):
     object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
     object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-    logging.info("{} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+    logging.info("Activation FaILED:: {} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
        message,
        points,
        player_name,
@@ -50,6 +51,28 @@ def report_invalid_activation(message, request):
        sl_header['owner_key'],
        request.META['REMOTE_ADDR']
     ))
+
+
+def report_invalid_registration(message, request):
+    sl_header = get_lsl_headers(request)
+    item_type = request.POST.get('item_type')
+    points = request.POST.get('points')
+
+    object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
+    object_region = request.META['HTTP_X_SECONDLIFE_REGION']
+
+    logging.info("Registration FAILED: {} points='{}' item_type='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+       message,
+       points,
+       item_type,
+       object_region,
+       object_position,
+       sl_header['object_key'],
+       sl_header['object_name'],
+       sl_header['owner_key'],
+       request.META['REMOTE_ADDR']
+    ))
+
 
 def json_success(message):
     return {JSON_TAG_RESULT: JSON_RESULT_SUCCESS, JSON_TAG_MESSAGE: message}
@@ -118,11 +141,11 @@ class ActivateItemView(generic.View):
             if item.type == Item.TYPE_CREDIT:
                 activation_count = Transaction.objects.filter(item=item, player=player).count()
                 if activation_count != 0:
-                    return JsonResponse(json_error('You have already used this item'))
+                    return JsonResponse(json_error({"code": "already_used"}))
             elif item.type == Item.TYPE_PRIZE:
                 total_points = player.get_total_points(hunt)
                 if points > total_points:
-                    return JsonResponse(json_error("You need {} more points to buy this"))
+                    return JsonResponse(json_error({"code": "not_enough_points", "points": points, "total_points": total_points}))
 
             new_transaction = Transaction(
                 points=points if item.type == Item.TYPE_CREDIT else -points,
@@ -158,13 +181,13 @@ class RegisterItemView(generic.View):
         try:
             sl_header = get_lsl_headers(request)
             private_token = request.POST.get('private_token')
-            points = request.POST.get('points')
-            item_type = request.POST.get('type')
+            points = int(request.POST.get('points'))
+            item_type = int(request.POST.get('type'))
 
             try:
                 hunt = Hunt.objects.get(private_token=private_token)
             except Hunt.DoesNotExist:
-                report_invalid_activation("Invalid hunt", request)
+                report_invalid_registration("Invalid hunt", request)
                 return JsonResponse(json_error('Invalid hunt specified'))
 
             try:
@@ -175,7 +198,7 @@ class RegisterItemView(generic.View):
                     region.full_clean()
                     region.save()
                 except ValidationError:
-                    report_invalid_activation("invalid region", request)
+                    report_invalid_registration("invalid region", request)
                     return JsonResponse(json_error('Invalid region'))
 
             item_count = Item.objects.filter(uuid=sl_header['object_key'], hunt=hunt).count()
@@ -195,6 +218,8 @@ class RegisterItemView(generic.View):
                 hunt=hunt
             )
             return JsonResponse(json_success('OK'))
+        except TypeError:
+            return JsonResponse(json_error('Server error'))
         except Exception:
             logging.exception("Failed to register item")
             return JsonResponse(json_error('Server error'))
