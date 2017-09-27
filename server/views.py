@@ -242,8 +242,6 @@ class RegisterItemView(generic.View):
         ))
 
 
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class GetTotalPointsView(generic.View):
     def post(self, request):
