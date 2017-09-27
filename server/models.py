@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 import os
 import base64
 
+
 class Hunt(models.Model):
     def __str__(self):
         return self.name
@@ -40,6 +41,7 @@ class Hunt(models.Model):
     name = models.CharField(max_length=255, unique=True)
     public_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)])
     private_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)])
+    enabled = models.BooleanField(default=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 

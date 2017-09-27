@@ -19,6 +19,7 @@ class HuntTests(TransactionTestCase):
 
     def test_normal_creation(self):
         self.hunt.full_clean()
+        self.assertTrue(self.hunt.enabled)
         self.assertSequenceEqual(Hunt.objects.all(), [self.hunt])
 
     def test_duplicate_name(self):
