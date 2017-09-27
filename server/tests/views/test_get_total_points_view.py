@@ -7,9 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from ...models import *
-from ...views import JSON_RESULT_ERROR
-from ...views import JSON_RESULT_SUCCESS
-from ...views import JSON_TAG_RESULT
+from ...views import *
 
 
 def is_json_success(result_json):
@@ -57,6 +55,7 @@ class GetTotalPointsView(TestCase):
             hunt=self.hunt,
             item=self.item_prizeA
         )
+        logging.disable(logging.ERROR)
 
     def post_with_metadata(self, address, params):
         return self.client.post(
@@ -81,6 +80,7 @@ class GetTotalPointsView(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(response.json()['payload']['total_points'], self.first_transaction.points)
+        self.assertEquals(response.json()[JSON_TAG_TARGET_UUID], server_data['player_uuid'])
 
     def test_unknown_user(self):
         server_data = dict(
@@ -92,6 +92,7 @@ class GetTotalPointsView(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
         self.assertEquals(response.json()['payload']['total_points'], 0)
+        self.assertEquals(response.json()[JSON_TAG_TARGET_UUID], server_data['player_uuid'])
 
     def test_invalid_player_uuid(self):
         server_data = dict(
@@ -102,11 +103,9 @@ class GetTotalPointsView(TestCase):
         server_data['player_uuid'] = None
         response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['payload']['total_points'], 0)
+        self.assertTrue(is_json_error(response.json()))
 
         server_data['player_uuid'] = 'a' * 300
         response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['payload']['total_points'], 0)
+        self.assertTrue(is_json_error(response.json()))
