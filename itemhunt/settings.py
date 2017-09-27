@@ -21,9 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if 'CUSTOM_SECRETS' not in locals():
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    SECRET_KEY = 'Debug key'
+    print("NO SECRETS DEFINED. Reverting to debug settings")
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
