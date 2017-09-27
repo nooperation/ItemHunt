@@ -74,7 +74,6 @@ class GetTotalPointsView(TestCase):
     def test_known_user(self):
         server_data = dict(
             private_token=self.hunt.private_token,
-            player_name=self.first_player.name,
             player_uuid=self.first_player.uuid,
         )
 
@@ -86,29 +85,9 @@ class GetTotalPointsView(TestCase):
     def test_unknown_user(self):
         server_data = dict(
             private_token=self.hunt.private_token,
-            player_name='Unknown user',
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 
-        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
-        self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['payload']['total_points'], 0)
-
-    def test_invalid_player_name(self):
-        server_data = dict(
-            private_token=self.hunt.private_token,
-            player_name='Unknown user',
-            player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
-        )
-
-        server_data['player_name'] = None
-        response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
-        self.assertEquals(response.status_code, 200)
-        self.assertTrue(is_json_success(response.json()))
-        self.assertEquals(response.json()['payload']['total_points'], 0)
-
-        server_data['player_name'] = 'a'*300
         response = self.post_with_metadata(reverse('server:get_total_points'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
@@ -117,7 +96,6 @@ class GetTotalPointsView(TestCase):
     def test_invalid_player_uuid(self):
         server_data = dict(
             private_token=self.hunt.private_token,
-            player_name='Unknown user',
             player_uuid='00000000-4444-2222-0000-AAAAAAAAAAAA',
         )
 

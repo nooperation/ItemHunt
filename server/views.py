@@ -237,12 +237,10 @@ class RegisterItemView(generic.View):
 @method_decorator(csrf_exempt, name='dispatch')
 class GetTotalPointsView(generic.View):
     def post(self, request):
-        player_name = ''
         player_uuid = ''
 
         try:
             private_token = request.POST.get('private_token')
-            player_name = request.POST.get('player_name')
             player_uuid = request.POST.get('player_uuid')
 
             try:
@@ -251,12 +249,12 @@ class GetTotalPointsView(generic.View):
                 return JsonResponse(json_error('Invalid hunt specified'))
 
             try:
-                player = Player.objects.get(name=player_name, uuid=player_uuid)
+                player = Player.objects.get(uuid=player_uuid)
             except Player.DoesNotExist:
                 return JsonResponse(json_success({'total_points': 0}))
 
             total_points = player.get_total_points(hunt)
             return JsonResponse(json_success({'total_points': total_points}))
         except Exception:
-            logging.exception("Failed to get total points for player '{}' with uuid '{}'".format(player_name, player_uuid))
+            logging.exception("Failed to get total points for uuid '{}'".format(player_uuid))
             return JsonResponse(json_error('Server error'))
