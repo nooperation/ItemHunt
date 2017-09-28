@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Sum
-from django.core.validators import RegexValidator, MinLengthValidator
+from django.core.validators import RegexValidator, MinLengthValidator, MinValueValidator
 from django.contrib.auth.models import User
 import os
 import base64
@@ -97,7 +97,8 @@ class Item(models.Model):
     position_x = models.FloatField()
     position_y = models.FloatField()
     position_z = models.FloatField()
-    points = models.IntegerField()
+    # The explicit validator is for SQLite, which normally allows negative PositiveIntegerFields values
+    points = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     enabled = models.BooleanField()
     region = models.ForeignKey(Region, on_delete=models.DO_NOTHING)
     hunt = models.ForeignKey(Hunt, on_delete=models.DO_NOTHING)
