@@ -4,8 +4,6 @@ string URL_ACTIVATE = "https://itemhunt.nooperation.net/server/activate_item";
 integer TYPE_CREDIT = 0;
 integer TYPE_PRIZE = 1;
 
-integer VALID_PRIZE_TYPES = 0;
-
 integer itemType = TYPE_CREDIT;
 integer points = 0;
 list prize_list = [];
@@ -16,6 +14,7 @@ integer currentConfigLine = 0;
 key configQueryId = NULL_KEY;
 string privateToken = "";
 key httpRequestId = NULL_KEY;
+integer listen_channel = -12345; // Placeholder
 
 string JSON_RESULT_SUCCESS = "success";
 string JSON_RESULT_ERROR = "error";
@@ -120,6 +119,43 @@ CheckDescription()
     {
         llResetScript();
     }
+}
+
+integer GetChannel()
+{
+    integer channel = (integer)("0x" + (string)llGetKey());
+    while(channel <= 255 && channel >= -255)
+    {
+        channel = (integer)llFrand(65536) | ((integer)llFrand(65536) << 16);
+    }
+
+    return channel;
+}
+
+ActivateItem(key player_uuid)
+{
+    list details = llGetObjectDetails(player_uuid, [
+      OBJECT_NAME,
+      OBJECT_POS
+    ]);
+
+    string player_name = llList2String(details, 0);
+    vector player_pos = llList2Vector(details, 1);
+
+    string post_data_str =
+      "private_token=" + privateToken +
+      "&player_name=" + player_name +
+      "&player_uuid=" + (string)player_uuid +
+      "&player_x=" + (string)player_pos.x +
+      "&player_y=" + (string)player_pos.y +
+      "&player_z=" + (string)player_pos.z +
+      "&points=" + (string)points;
+
+    httpRequestId = llHTTPRequest(
+      URL_ACTIVATE,
+      [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"],
+      post_data_str
+    );
 }
 
 default
@@ -271,7 +307,27 @@ state Initialized
     state_entry()
     {
         Output("Script running");
+
+        if(itemType == TYPE_PRIZE)
+        {
+          listen_channel = GetChannel();
+          llListen(listen_channel, "", NULL_KEY, "Yes");
+        }
+
         llSetTimerEvent(5);
+    }
+
+    listen(integer channel, string name, key id, string msg)
+    {
+      if(channel != listen_channel)
+      {
+        return;
+      }
+
+      if(llToLower(msg) == "yes")
+      {
+          ActivateItem(id);
+      }
     }
 
     timer()
@@ -289,41 +345,25 @@ state Initialized
         integer i = 0;
         for(i = 0; i < num_detected; ++i)
         {
-            string player_uuid = llDetectedKey(i);
-            list details = llGetObjectDetails(player_uuid, [
-              OBJECT_NAME,
-              OBJECT_POS
-            ]);
-
-            string player_name = llList2String(details, 0);
-            vector player_pos = llList2Vector(details, 1);
-
-            string post_data_str =
-              "private_token=" + privateToken +
-              "&player_name=" + player_name +
-              "&player_uuid=" + (string)player_uuid +
-              "&player_x=" + (string)player_pos.x +
-              "&player_y=" + (string)player_pos.y +
-              "&player_z=" + (string)player_pos.z +
-              "&points=" + (string)points;
-
-            httpRequestId = llHTTPRequest(
-              URL_ACTIVATE,
-              [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"],
-              post_data_str
-            );
+            if(itemType == TYPE_CREDIT)
+            {
+                ActivateItem(llDetectedKey(i));
+            }
+            else if(itemType == TYPE_PRIZE)
+            {
+                llDialog(llDetectedKey(i), "Buy '" + llGetObjectName() + "' for " + (string)points + " points?", ["Yes", "No"], listen_channel);
+            }
         }
     }
 
     changed(integer change)
     {
-        if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START))
+        if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START | CHANGED_INVENTORY))
         {
             Output("Resetting...");
             llResetScript();
         }
     }
-
 
     http_response(key request_id, integer status, list metadata, string body)
     {
