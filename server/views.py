@@ -196,11 +196,21 @@ class RegisterItemView(generic.View):
                     self.log_failure("invalid region", request)
                     return JsonResponse(json_error('Invalid region'))
 
-            item_count = Item.objects.filter(uuid=sl_header['object_key'], hunt=hunt).count()
-            if item_count > 0:
+            existing_item = Item.objects.filter(uuid=sl_header['object_key'], hunt=hunt).first()
+            if existing_item is not None:
+                existing_item.name = sl_header['object_name']
+                existing_item.type = item_type
+                existing_item.position_x = sl_header['position_x']
+                existing_item.position_y = sl_header['position_y']
+                existing_item.position_z = sl_header['position_z']
+                existing_item.points = points
+                existing_item.region = region
+                existing_item.hunt = hunt
+                existing_item.full_clean()
+                existing_item.save()
                 return JsonResponse(json_success('OK'))
 
-            new_item = Item.objects.create(
+            new_item = Item(
                 uuid=sl_header['object_key'],
                 name=sl_header['object_name'],
                 type=item_type,
@@ -212,6 +222,9 @@ class RegisterItemView(generic.View):
                 region=region,
                 hunt=hunt
             )
+            new_item.full_clean()
+            new_item.save()
+
             return JsonResponse(json_success('OK'))
         except TypeError:
             return JsonResponse(json_error('Server error'))

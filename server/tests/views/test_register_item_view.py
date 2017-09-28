@@ -1,11 +1,5 @@
-import requests
-from django.test import LiveServerTestCase
-from django.test import TransactionTestCase, TestCase
-from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
-import copy
+from django.test import TestCase
 
 from ...models import *
 from ...views import JSON_RESULT_ERROR
@@ -43,12 +37,11 @@ class GetTotalPointsView(TestCase):
             public_token='aduosJYPT1bU4tS3YvkIeN_D04ppO2Gk0eByAYQkZqMd',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
         )
-        self.object_key = '10200300-4444-22B2-0000-BAABAACAACCA'
+        self.object_key = 'e88b0760-1316-8ca2-f4cc-48d7a807a448'
         self.object_name = 'Test object'
         self.position_x = 5
         self.position_y = 6
         self.position_z = 7
-
 
     def post_with_metadata(self, address, params):
         return self.client.post(
@@ -59,7 +52,7 @@ class GetTotalPointsView(TestCase):
             HTTP_X_SECONDLIFE_OWNER_NAME='Owner Name',
             HTTP_X_SECONDLIFE_OBJECT_NAME=self.object_name,
             HTTP_X_SECONDLIFE_OBJECT_KEY=self.object_key,
-            HTTP_X_SECONDLIFE_OWNER_KEY='AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA',
+            HTTP_X_SECONDLIFE_OWNER_KEY='b553381f-9c6a-a51d-4037-186c9d0f7413',
             HTTP_X_SECONDLIFE_SHARD='Secondlife'
         )
 
@@ -163,4 +156,36 @@ class GetTotalPointsView(TestCase):
         response = self.post_with_metadata(reverse('server:register_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_error(response.json()))
+
+    def test_properties_changed(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=10,
+            type=Item.TYPE_CREDIT
+        )
+        self.post_with_metadata(reverse('server:register_item'), server_data)
+
+        server_data['points'] = 100
+        server_data['type'] = Item.TYPE_PRIZE
+        self.region.name = 'UpdatedRegion'
+        self.object_name = 'Updated object'
+        self.position_x = 105
+        self.position_y = 106
+        self.position_z = 107
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_success(response.json()))
+
+        first_item = Item.objects.first()
+        self.assertEquals(first_item.uuid, self.object_key)
+        self.assertEquals(first_item.name, self.object_name)
+        self.assertEquals(first_item.type, server_data['type'])
+        self.assertEquals(first_item.position_x, self.position_x)
+        self.assertEquals(first_item.position_y, self.position_y)
+        self.assertEquals(first_item.position_z, self.position_z)
+        self.assertEquals(first_item.points, server_data['points'])
+        self.assertEquals(first_item.enabled, True)
+        self.assertEquals(first_item.hunt, self.hunt)
+        self.assertEquals(first_item.region.name, self.region.name)
 
