@@ -228,9 +228,14 @@ class RegisterItemView(generic.View):
             return JsonResponse(json_success('OK'))
         except TypeError:
             return JsonResponse(json_error('Server error'))
+        except ValidationError:
+            self.log_failure("Item failed validation", request)
+            if points < 0:
+                return JsonResponse(json_error('Points cannot be negative'))
+            return JsonResponse(json_error('Server error'))
         except Exception:
             logging.exception("Failed to register item")
-            self.log_failure("Failed to register item")
+            self.log_failure("Failed to register item", request)
             return JsonResponse(json_error('Server error'))
 
     @staticmethod

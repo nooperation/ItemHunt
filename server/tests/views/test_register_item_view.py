@@ -189,3 +189,46 @@ class GetTotalPointsView(TestCase):
         self.assertEquals(first_item.hunt, self.hunt)
         self.assertEquals(first_item.region.name, self.region.name)
 
+    def test_negative_points_credit(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=-10,
+            type=Item.TYPE_CREDIT
+        )
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_error(response.json()))
+
+    def test_negative_points_prize(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=-10,
+            type=Item.TYPE_PRIZE
+        )
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_error(response.json()))
+
+    def test_zero_points_prize(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=0,
+            type=Item.TYPE_PRIZE
+        )
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_success(response.json()))
+
+    def test_zero_points_credit(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=0,
+            type=Item.TYPE_CREDIT
+        )
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_success(response.json()))
