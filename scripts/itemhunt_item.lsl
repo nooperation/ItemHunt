@@ -4,8 +4,12 @@ string URL_ACTIVATE = "https://itemhunt.nooperation.net/server/activate_item";
 integer TYPE_CREDIT = 0;
 integer TYPE_PRIZE = 1;
 
+integer VALID_PRIZE_TYPES = 0;
+
 integer itemType = TYPE_CREDIT;
-integer points = 15;
+integer points = 0;
+list prize_list = [];
+integer prize_list_length = 0;
 
 string CONFIG_PATH = "Config";
 integer currentConfigLine = 0;
@@ -18,6 +22,10 @@ string JSON_RESULT_ERROR = "error";
 string JSON_TAG_RESULT = "result";
 string JSON_TAG_PAYLOAD = "payload";
 string JSON_TAG_TARGET_UUID = "target_uuid";
+
+string description = "";
+string name = "";
+vector position = <0, 0, 0>;
 
 // Previous String Examples:
 //   Sorry, you took too long to respond to the confirmation dialog!  Click on the prize box again if you would like to spend your points on this prize.
@@ -106,16 +114,83 @@ integer ReadConfig()
     return FALSE;
 }
 
+CheckDescription()
+{
+    if(llGetObjectDesc() != description || llGetObjectName() != name || llGetPos() != position)
+    {
+        llResetScript();
+    }
+}
+
 default
 {
     state_entry()
     {
-        Output("Fresh state");
+        description = llGetObjectDesc();
+        name = llGetObjectName();
+        position = llGetPos();
+        llSetTimerEvent(5);
+
+        points = (integer)description;
+        if((string)points != description)
+        {
+          Output("ERROR: Description must contain the point value of this prize or treasure");
+          return;
+        }
+
+        if(points < 0)
+        {
+          Output("ERROR: Negative point value detected");
+          return;
+        }
+
+        integer totalItems = llGetInventoryNumber(INVENTORY_OBJECT);
+        if(totalItems > 0)
+        {
+          prize_list = [];
+          integer itemIndex = 0;
+          for(itemIndex = 0; itemIndex < totalItems; ++itemIndex)
+          {
+              string itemName = llGetInventoryName(INVENTORY_OBJECT, itemIndex);
+              if(itemName == llGetScriptName() || llToLower(itemName) == "config")
+              {
+                Output("ERROR: Attempted to include sensitive items as a prize");
+                return;
+              }
+
+              if(llGetInventoryPermMask(itemName, MASK_BASE) & PERM_COPY)
+              {
+                prize_list += itemName;
+              }
+          }
+
+          prize_list_length = llGetListLength(prize_list);
+          if(prize_list_length != totalItems)
+          {
+              Output("ERROR: Inventory contains some non-copyable items. These cannot be given away as a prize.");
+              return;
+          }
+          else
+          {
+              itemType = TYPE_PRIZE;
+          }
+        }
+
+        if(itemType == TYPE_CREDIT && points == 0)
+        {
+          Output("ERROR: Only store items can have a zero point value");
+          return;
+        }
 
         if(!ReadConfig())
         {
             Output("Failed to read config");
         }
+    }
+
+    timer()
+    {
+        CheckDescription();
     }
 
     dataserver(key queryId, string data)
@@ -130,7 +205,14 @@ default
                     return;
                 }
 
-                Output("Registering...");
+                if(itemType == TYPE_CREDIT)
+                {
+                  Output("Registering hunt item worth " + (string)points + " points");
+                }
+                else
+                {
+                  Output("Registering prize with cost of " + (string)points + " points");
+                }
 
                 string post_data_str =
                   "private_token=" + privateToken +
@@ -179,7 +261,6 @@ default
     {
         if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START | CHANGED_INVENTORY))
         {
-            Output("Resetting...");
             llResetScript();
         }
     }
@@ -190,6 +271,12 @@ state Initialized
     state_entry()
     {
         Output("Script running");
+        llSetTimerEvent(5);
+    }
+
+    timer()
+    {
+        CheckDescription();
     }
 
     on_rez(integer start_param)
@@ -260,7 +347,34 @@ state Initialized
         {
             string points_redeemed = llJsonGetValue(payload, ["points"]);
             string total_points = llJsonGetValue(payload, ["total_points"]);
-            OutputTo(target_uuid, points_redeemed + " points recorded. You have a total of " + total_points + " points");
+
+            if(itemType == TYPE_PRIZE)
+            {
+              OutputTo(target_uuid, "You have successfully purchased this prize! You have " + total_points + " points remaining");
+
+              Output("Prize list = " + llDumpList2String(prize_list, ", "));
+
+              if(prize_list_length > 1)
+              {
+                string objectName = llGetObjectName();
+                if(llStringLength(objectName) == 0)
+                {
+                  llGiveInventoryList(target_uuid, "Item hunt prize " + llGetDate(), prize_list);
+                }
+                else
+                {
+                  llGiveInventoryList(target_uuid, llGetObjectName(), prize_list);
+                }
+              }
+              else
+              {
+                llGiveInventory(target_uuid, llList2String(prize_list, 0));
+              }
+            }
+            else
+            {
+              OutputTo(target_uuid, points_redeemed + " points recorded. You have a total of " + total_points + " points");
+            }
         }
         else
         {
