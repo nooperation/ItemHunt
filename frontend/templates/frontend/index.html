@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table class="table table-striped table-hover ">
+    <thead>
+        <tr>
+            <th>Hunt Name</th>
+            <th class="text-right">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in hunt_list %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td class="text-right">{{ item.created_on }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

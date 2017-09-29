@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+
+from django.urls import reverse_lazy
+
 from .settings_secret import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -28,11 +31,14 @@ if 'CUSTOM_SECRETS' not in locals():
     print("NO SECRETS DEFINED. Reverting to debug settings")
 
 
+LOGIN_REDIRECT_URL = reverse_lazy('frontend:index')
+LOGIN_URL = '/login/'
 
 # Application definition
 
 INSTALLED_APPS = [
     'server.apps.ServerConfig',
+    'frontend.apps.FrontendConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,7 +62,7 @@ ROOT_URLCONF = 'itemhunt.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['itemhunt/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
