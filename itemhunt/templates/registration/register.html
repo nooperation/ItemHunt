@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="col-md-4 center-block ">
+  <form class="form-horizontal"  method="post" action="{% url 'register' %}">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}
+      {{ hidden }}
+    {% endfor %}
+    <h2 class="form-signin-heading">Register</h2>
+
+{% if form.errors %}
+    <p class="text-danger">Registration failed.</p>
+{% endif %}
+
+    {{ form.username.errors }}
+    {{ form.password1.errors }}
+    {{ form.password2.errors }}
+
+    <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label_tag }}</label>
+    <input type="text" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}"  class="form-control" placeholder="{{ form.username.label }}" required
+      {% if form.username.value %}
+        value="{{ form.username.value }}"
+      {% else %}
+        autofocus=""
+      {% endif %}>
+
+    <label for="{{ form.password1.id_for_label }}" class="sr-only">{{ form.password1.label_tag }}</label>
+    <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}" class="form-control" placeholder="{{ form.password1.label }}" required>
+
+    <label for="{{ form.password2.id_for_label }}" class="sr-only">{{ form.password2.label_tag }}</label>
+    <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}" class="form-control" placeholder="{{ form.password2.label }}" required>
+
+    <br />
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <input type="hidden" name="next" value="{{ next }}" />
+  </form>
+</div>
+{% endblock %}
