@@ -40,7 +40,6 @@ class ActivateItemView(TestCase):
         self.region = Region.objects.create(name='FirstRegion')
         self.hunt = Hunt.objects.create(
             name='First hunt',
-            public_token='aduosJYPT1bU4tS3YvkIeN_D04ppO2Gk0eByAYQkZqMd',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
         )
         self.first_player = Player.objects.create(
