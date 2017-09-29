@@ -9,7 +9,6 @@ class ItemTests(TransactionTestCase):
         self.region = Region.objects.create(name='First Region')
         self.hunt = Hunt.objects.create(
             name='First hunt',
-            public_token='aduosJYPT1bU4tS3YvkIeN_D04ppO2Gk0eByAYQkZqMd',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
         )
         self.item = Item.objects.create(

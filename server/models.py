@@ -4,46 +4,73 @@ from django.core.validators import RegexValidator, MinLengthValidator, MinValueV
 from django.contrib.auth.models import User
 import os
 import base64
+from datetime import datetime, timedelta, timezone
+import logging
+
+
+def generate_token():
+    token = None
+    for i in range(0, 1000):
+        token = base64.urlsafe_b64encode(os.urandom(33)).decode('utf-8')
+        if Hunt.objects.filter(private_token=token).count() != 0:
+            token = None
+        elif HuntAuthorizationToken.objects.filter(token=token).count() != 0:
+            token = None
+        else:
+            break
+    if token is None:
+        raise Exception('Unable to generate token')
+    return token
 
 
 class Hunt(models.Model):
     def __str__(self):
         return self.name
 
-    @staticmethod
-    def generate_private_token():
-        token = None
-        for i in range(0, 10):
-            token = base64.urlsafe_b64encode(os.urandom(33)).decode('utf-8')
-            if Hunt.objects.filter(private_token=token).count() != 0:
-                token = None
-            else:
-                break
-        return token
-
-    @staticmethod
-    def generate_public_token():
-        token = None
-        for i in range(0, 10):
-            token = base64.urlsafe_b64encode(os.urandom(33)).decode('utf-8')
-            if Hunt.objects.filter(public_token=token).count() != 0:
-                token = None
-            else:
-                break
-        return token
-
     def regenerate_private_token(self):
-        self.private_token = self.generate_private_token()
-
-    def regenerate_public_token(self):
-        self.public_token = self.generate_public_token()
+        self.private_token = generate_token()
 
     name = models.CharField(max_length=255, unique=True)
-    public_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)])
-    private_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)])
+    private_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)], default=generate_token)
     enabled = models.BooleanField(default=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+
+
+class HuntAuthorizationToken(models.Model):
+    MAX_TOKEN_AGE = 60 * 5
+
+    def __str__(self):
+        return self.hunt.name
+
+    def is_expired(self):
+        time_since_creation = (datetime.now(timezone.utc) - self.created_on).seconds
+        if time_since_creation > self.MAX_TOKEN_AGE:
+            return True
+        return False
+
+    @staticmethod
+    def delete_all_expired():
+        try:
+            expiration_date = datetime.now(timezone.utc) - timedelta(seconds=HuntAuthorizationToken.MAX_TOKEN_AGE)
+            expired_tokens = HuntAuthorizationToken.objects.filter(created_on__lte=expiration_date)
+            expired_tokens.delete()
+            logging.error('butts')
+        except Exception as ex:
+            logging.exception('Failed to delete all expired', ex)
+
+    token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)], default=generate_token)
+    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+
+class AuthorizedUsers(models.Model):
+    def __str__(self):
+        return self.user.name
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now_add=True)
 
 
 class Region(models.Model):
@@ -100,8 +127,8 @@ class Item(models.Model):
     # The explicit validator is for SQLite, which normally allows negative PositiveIntegerFields values
     points = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     enabled = models.BooleanField()
-    region = models.ForeignKey(Region, on_delete=models.DO_NOTHING)
-    hunt = models.ForeignKey(Hunt, on_delete=models.DO_NOTHING)
+    region = models.ForeignKey(Region, on_delete=models.PROTECT)
+    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
@@ -117,8 +144,8 @@ class Transaction(models.Model):
     item_x = models.FloatField()
     item_y = models.FloatField()
     item_z = models.FloatField()
-    player = models.ForeignKey(Player, on_delete=models.DO_NOTHING)
-    region = models.ForeignKey(Region, on_delete=models.DO_NOTHING)
-    hunt = models.ForeignKey(Hunt, on_delete=models.DO_NOTHING)
+    player = models.ForeignKey(Player, on_delete=models.PROTECT)
+    region = models.ForeignKey(Region, on_delete=models.PROTECT)
+    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.DO_NOTHING)
     created_on = models.DateTimeField(auto_now_add=True)
