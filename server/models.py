@@ -30,6 +30,17 @@ class Hunt(models.Model):
     def regenerate_private_token(self):
         self.private_token = generate_token()
 
+    def is_user_authorized(self, user):
+        existing_auths = AuthorizedUsers.objects.filter(user=user, hunt=self).count()
+        if existing_auths > 0:
+            return True
+        return False
+
+    def authorize_user(self, user):
+        if not AuthorizedUsers.is_user_authorized(user, self):
+            new_auth = AuthorizedUsers.objects.create(user=user, hunt=self)
+            new_auth.full_clean()
+
     name = models.CharField(max_length=255, unique=True)
     private_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)], default=generate_token)
     enabled = models.BooleanField(default=True)
@@ -67,6 +78,13 @@ class HuntAuthorizationToken(models.Model):
 class AuthorizedUsers(models.Model):
     def __str__(self):
         return self.user.name
+
+    @staticmethod
+    def is_user_authorized(user, hunt):
+        existing_auths = AuthorizedUsers.objects.filter(user=user, hunt=hunt).count()
+        if existing_auths > 0:
+            return True
+        return False
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
