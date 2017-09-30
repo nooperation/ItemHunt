@@ -12,7 +12,7 @@
     <tbody>
     {% for item in hunt_list %}
     <tr>
-        <td>{{ item.name }}</td>
+        <td><a href="{% url 'frontend:view_hunt' item.id %}">{{ item.name }}</a></td>
         <td class="text-right">{{ item.created_on }}</td>
     </tr>
     {% endfor %}
