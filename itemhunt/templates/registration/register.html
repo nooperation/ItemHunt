@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="col-md-4 center-block ">
-  <form class="form-horizontal"  method="post" action="{% url 'register' %}">
+<div class="container">
+  <form class="form-signin" method="post" action="{% url 'register' %}">
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}
       {{ hidden }}
@@ -32,7 +32,7 @@
     <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}" class="form-control" placeholder="{{ form.password2.label }}" required>
 
     <br />
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <button class="btn btn-lg btn-dark btn-block " type="submit">Sign in</button>
     <input type="hidden" name="next" value="{{ next }}" />
   </form>
 </div>
