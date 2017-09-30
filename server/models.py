@@ -83,7 +83,7 @@ class HuntAuthorizationToken(models.Model):
 
 class AuthorizedUsers(models.Model):
     def __str__(self):
-        return self.user.name
+        return self.user.username
 
     @staticmethod
     def is_user_authorized(user, hunt):
