@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% load custom_filters %}
+    {% if error %}
+        Error: {{ error }}
+    {% else %}
+        <h1 class="text-center">{{ item.name }}</h1>
+        <h2>Properties</h2>
+        <table class="table table-striped table-hover ">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Name</td><td>{{ item.name }}</td></tr>
+                <tr><td>Type</td><td>{{ item.type }}</td></tr>
+                <tr><td>Points</td><td>{{ item.uuid }}</td></tr>
+                <tr><td>Position</td><td>{{ item | item_location | safe }}</td></tr>
+                <tr><td>Enabled</td><td>{{ item.enabled }}</td></tr>
+            </tbody>
+        </table>
+        <br />
+        <h2>Transactions</h2>
+        <table class="table table-striped table-hover ">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Points</th>
+                    <th>Player Location</th>
+                    <th>Item Location</th>
+                    <th class="text-right">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td><a href="#">{{ transaction.player.name }}</a></td>
+                    <td>{{ transaction.points }}</td>
+                    <td>{{ transaction | transaction_location | safe }}</td>
+                    <td>{{ transaction | transaction_item_location| safe }}</td>
+                    <td class="text-right">{{ transaction.created_on }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
