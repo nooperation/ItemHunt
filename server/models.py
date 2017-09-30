@@ -72,7 +72,6 @@ class HuntAuthorizationToken(models.Model):
             expiration_date = datetime.now(timezone.utc) - timedelta(seconds=HuntAuthorizationToken.MAX_TOKEN_AGE)
             expired_tokens = HuntAuthorizationToken.objects.filter(created_on__lte=expiration_date)
             expired_tokens.delete()
-            logging.error('butts')
         except Exception as ex:
             logging.exception('Failed to delete all expired', ex)
 
