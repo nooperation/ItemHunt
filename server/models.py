@@ -121,8 +121,12 @@ class Player(models.Model):
             code='invalid_uuid'
         ),
     ])
-    name = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=64)
+    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('name', 'hunt',)
 
 
 class Item(models.Model):

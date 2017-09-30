@@ -27,7 +27,8 @@ class GetTotalPointsView(TestCase):
         )
         self.first_player = Player.objects.create(
             uuid='41f94400-2a3e-408a-9b80-1774724f62af',
-            name='First Agent'
+            name='First Agent',
+            hunt=self.hunt
         )
         self.item_prizeA = Item.objects.create(
             uuid='33333333-3333-3333-3333-333333333333',
