@@ -10,6 +10,10 @@ class PlayerTests(TransactionTestCase):
             name='First hunt',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
         )
+        self.second_hunt = Hunt.objects.create(
+            name='Second hunt',
+            private_token='a' * 32
+        )
 
     def test_normal_creation(self):
         valid_players = [
@@ -26,6 +30,60 @@ class PlayerTests(TransactionTestCase):
 
         self.assertSequenceEqual(Player.objects.all(), players)
 
+    def test_duplicate_name_different_hunt(self):
+        valid_players = [
+            {'name': 'First Agent', 'uuid': '41f94400-2a3e-408a-9b80-1774724f62af', 'hunt': self.hunt},
+            {'name': 'First Agent', 'uuid': '41f94400-2a3e-408a-9b80-1774724f62af', 'hunt': self.second_hunt},
+        ]
+
+        players = []
+        for player_data in valid_players:
+            player = Player.objects.create(name=player_data['name'], uuid=player_data['uuid'], hunt=player_data['hunt'])
+            player.full_clean()
+            players.append(player)
+
+        self.assertSequenceEqual(Player.objects.all(), players)
+
+    def test_duplicate_uuid_different_name_different_hunt(self):
+        first_player = Player.objects.create(name='First Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af', hunt=self.hunt)
+        second_player = Player.objects.create(name='Second Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af', hunt=self.second_hunt)
+
+        first_player.full_clean()
+        second_player.full_clean()
+
+        self.assertSequenceEqual(Player.objects.all(), [first_player, second_player])
+
+    def test_different_uuid_duplicate_name_different_hunt(self):
+        first_player = Player.objects.create(name='First Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af',
+                                             hunt=self.hunt)
+        second_player = Player.objects.create(name='Second Agent', uuid='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                                              hunt=self.second_hunt)
+
+        first_player.full_clean()
+        second_player.full_clean()
+
+        self.assertSequenceEqual(Player.objects.all(), [first_player, second_player])
+
+    def test_duplicate_uuid_different_name_same_hunt(self):
+        original_player = Player.objects.create(name='First Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af', hunt=self.hunt)
+
+        with self.assertRaises(ValidationError):
+            player = Player(name='Invalid Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af', hunt=self.hunt)
+            player.full_clean()
+            player.save()
+
+        self.assertSequenceEqual(Player.objects.all(), [original_player])
+
+    def test_duplicate_name_different_uuid_same_hunt(self):
+        original_player = Player.objects.create(name='First Agent', uuid='41f94400-2a3e-408a-9b80-1774724f62af', hunt=self.hunt)
+
+        with self.assertRaises(ValidationError):
+            player = Player(name='First Agent', uuid='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', hunt=self.hunt)
+            player.full_clean()
+            player.save()
+
+        self.assertSequenceEqual(Player.objects.all(), [original_player])
+
     def test_duplicate_creation(self):
         valid_players = [
             {'name': 'First Agent', 'uuid': '41f94400-2a3e-408a-9b80-1774724f62af', 'hunt': self.hunt},
@@ -39,7 +97,7 @@ class PlayerTests(TransactionTestCase):
 
         for player_data in valid_players:
             with self.assertRaises(IntegrityError):
-                Player.objects.create(name=player_data['name'], uuid=player_data['uuid'], hunt=player_data['hunt'])
+                Player.objects.create(name=player_data['name'], uuid=player_data['uuid'], hunt=player_data['hunt']).full_clean()
 
         self.assertSequenceEqual(Player.objects.all(), players)
 

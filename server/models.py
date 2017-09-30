@@ -114,7 +114,7 @@ class Player(models.Model):
             return 0
         return total_points
 
-    uuid = models.CharField(max_length=36, unique=True, validators=[
+    uuid = models.CharField(max_length=36, validators=[
         RegexValidator(
             regex='^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$',
             message='Invalid UUID',
@@ -126,7 +126,10 @@ class Player(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('name', 'hunt',)
+        unique_together = (
+            ('uuid', 'hunt'),
+            ('name', 'hunt')
+        )
 
 
 class Item(models.Model):
