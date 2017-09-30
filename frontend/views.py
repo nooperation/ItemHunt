@@ -56,3 +56,21 @@ class HuntView(LoginRequiredMixin, generic.View):
         except Exception as ex:
             logging.exception('Failed to view hunt')
             return render(request, 'frontend/view_hunt.html', {'error': 'Invalid hunt'}, status=403)
+
+
+class ItemView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id, item_id):
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            item = Item.objects.get(pk=item_id, hunt__id=hunt_id)
+            transactions = Transaction.objects.filter(item=item).select_related('player')
+            return render(request, 'frontend/view_item.html', {'item': item, 'transactions': transactions})
+        except AuthorizedUsers.DoesNotExist:
+            logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
+            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
+        except Item.DoesNotExist:
+            logging.warning('Attempt to access unauthorized item. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
+            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
+        except Exception as ex:
+            logging.exception('Failed to view item')
+            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
