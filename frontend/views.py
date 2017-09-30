@@ -4,7 +4,7 @@ from django import template
 
 # Create your views here.
 from django.views import generic
-from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction
+from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction, Player
 import logging
 
 
@@ -48,8 +48,7 @@ class HuntView(LoginRequiredMixin, generic.View):
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
             store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt__id=hunt_id)
-            transactions = Transaction.objects.filter(hunt__id=hunt_id).select_related('player').distinct()
-            players = map(lambda transaction: transaction.player, transactions)
+            players = Player.objects.filter(hunt__id=hunt_id)
             return render(request, 'frontend/view_hunt.html', {'hunt': hunt, 'store_items': store_items, 'players': players})
         except AuthorizedUsers.DoesNotExist:
             logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))

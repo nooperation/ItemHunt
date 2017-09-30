@@ -6,16 +6,17 @@ from server.models import *
 
 class TransactionTests(TransactionTestCase):
     def setUp(self):
-        self.player = Player.objects.create(
-            name='First Player',
-            uuid='41f94400-2a3e-408a-9b80-1774724f62af'
-        )
         self.region = Region.objects.create(
             name='First Region'
         )
         self.hunt = Hunt.objects.create(
             name='First hunt',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'
+        )
+        self.player = Player.objects.create(
+            name='First Player',
+            uuid='41f94400-2a3e-408a-9b80-1774724f62af',
+            hunt=self.hunt
         )
         self.item_prizeA = Item.objects.create(
             uuid='33333333-3333-3333-3333-333333333333',

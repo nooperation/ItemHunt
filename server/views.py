@@ -100,9 +100,9 @@ class ActivateItemView(generic.View):
                     return JsonResponse(json_error_to(player_uuid, 'Invalid region'))
 
             try:
-                player = Player.objects.get(name=player_name, uuid=player_uuid)
+                player = Player.objects.get(name=player_name, uuid=player_uuid, hunt=hunt)
             except Player.DoesNotExist:
-                player = Player(name=player_name, uuid=player_uuid)
+                player = Player(name=player_name, uuid=player_uuid, hunt=hunt)
                 try:
                     player.full_clean()
                     player.save()
