@@ -55,7 +55,6 @@ class GetTotalPointsView(TestCase):
             hunt=self.hunt,
             item=self.item_prizeA
         )
-        logging.disable(logging.ERROR)
 
     def post_with_metadata(self, address, params):
         return self.client.post(
