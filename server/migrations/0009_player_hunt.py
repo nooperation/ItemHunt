@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='player',
             name='hunt',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='server.Hunt'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='server.Hunt'),
             preserve_default=False,
         ),
     ]
