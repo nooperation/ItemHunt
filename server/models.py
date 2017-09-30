@@ -41,6 +41,12 @@ class Hunt(models.Model):
             new_auth = AuthorizedUsers.objects.create(user=user, hunt=self)
             new_auth.full_clean()
 
+    def create_hunt_auth_token(self):
+        hunt_auth_token = HuntAuthorizationToken(hunt=self)
+        hunt_auth_token.full_clean()
+        hunt_auth_token.save()
+        return hunt_auth_token
+
     name = models.CharField(max_length=255, unique=True)
     private_token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)], default=generate_token)
     enabled = models.BooleanField(default=True)

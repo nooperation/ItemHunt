@@ -12,7 +12,10 @@ import logging
 
 class IndexView(LoginRequiredMixin, generic.View):
     def get(self, request):
-        hunt_list = Hunt.objects.all()
+        authenticated_services = AuthorizedUsers.objects.filter(user=request.user)
+        hunt_list = []
+        for item in authenticated_services:
+            hunt_list.append(item.hunt)
         return render(request, 'frontend/index.html', {'hunt_list': hunt_list})
 
 
