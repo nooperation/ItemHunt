@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
+from django import template
 
 # Create your views here.
 from django.views import generic
-from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers
+from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction
 import logging
 
 
@@ -39,7 +40,6 @@ class RegisterTokenView(LoginRequiredMixin, generic.View):
         except Exception as ex:
             logging.exception('Failed to register token')
             return render(request, 'frontend/register_token.html', {'error': 'Invalid token'}, status=400)
-        # TODO: Add feedback
         return render(request, 'frontend/register_token.html', {'success': 'Server Registered', 'hunt_name': hunt.name})
 
 
@@ -47,10 +47,13 @@ class HuntView(LoginRequiredMixin, generic.View):
     def get(self, request, hunt_id):
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            return render(request, 'frontend/view_hunt.html', {'hunt': hunt})
+            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt__id=hunt_id)
+            transactions = Transaction.objects.filter(hunt__id=hunt_id).select_related('player').distinct()
+            players = map(lambda transaction: transaction.player, transactions)
+            return render(request, 'frontend/view_hunt.html', {'hunt': hunt, 'store_items': store_items, 'players': players})
         except AuthorizedUsers.DoesNotExist:
             logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
-            return render(request, 'frontend/view_hunt.html', {'error': 'Invalid hunt (permissions)'}, status=403)
-        except Exception:
+            return render(request, 'frontend/view_hunt.html', {'error': 'Invalid hunt'}, status=403)
+        except Exception as ex:
             logging.exception('Failed to view hunt')
             return render(request, 'frontend/view_hunt.html', {'error': 'Invalid hunt'}, status=403)
