@@ -16,7 +16,7 @@
              <nav>
                 {% for breadcrumb in request.breadcrumbs %}
                         {% if breadcrumb.path %}
-                            <a class="breadcrumb-item" href="{{ breadcrumb.path }}">{{ breadcrumb.name }}</a>
+                            <a class="breadcrumb-item text-light" href="{{ breadcrumb.path }}">{{ breadcrumb.name }}</a>
                         {% else %}
                             <span class="breadcrumb-item active">{{ breadcrumb.name }}</span>
                         {% endif %}
