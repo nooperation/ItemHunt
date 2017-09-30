@@ -70,3 +70,8 @@ class HuntTests(TransactionTestCase):
         self.second_hunt.save()
         self.second_hunt.refresh_from_db()
         self.assertNotEquals(self.second_hunt.private_token, previous_token)
+
+    def test_create_hunt_auth_token(self):
+        hunt_auth_token = self.hunt.create_hunt_auth_token()
+        self.assertEquals(hunt_auth_token.hunt, self.hunt)
+        self.assertEquals(hunt_auth_token, HuntAuthorizationToken.objects.get(token=hunt_auth_token.token))
