@@ -34,7 +34,7 @@ class RegisterTokenViewTests(TestCase):
         self.assertTrue(self.hunt.is_user_authorized(self.user))
         self.assertEquals(HuntAuthorizationToken.objects.all().count(), 0)
 
-    def test_register_not_loggedin(self):
+    def test_register_not_logged_in(self):
         server_data = dict(
             token=self.hunt_token.token
         )
@@ -42,6 +42,7 @@ class RegisterTokenViewTests(TestCase):
         self.client.logout()
         response = self.client.get(reverse('frontend:register_token', kwargs=server_data))
         self.assertRedirects(response, reverse('login') + '?next=' + reverse('frontend:register_token', kwargs=server_data))
+        # Our has not been used it, it must still exist
         self.assertSequenceEqual(HuntAuthorizationToken.objects.all(), [self.hunt_token])
 
     def test_register_invalid_token(self):
@@ -50,4 +51,4 @@ class RegisterTokenViewTests(TestCase):
         )
 
         response = self.client.get(reverse('frontend:register_token', kwargs=server_data))
-        self.assertContains(response, 'Error')
+        self.assertEquals(response.status_code, 400)
