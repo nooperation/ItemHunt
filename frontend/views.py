@@ -58,19 +58,51 @@ class HuntView(LoginRequiredMixin, generic.View):
             return render(request, 'frontend/view_hunt.html', {'error': 'Invalid hunt'}, status=403)
 
 
+# TODO: Test to make sure we're only getting transactions for this item's hunt
 class ItemView(LoginRequiredMixin, generic.View):
     def get(self, request, hunt_id, item_id):
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
             item = Item.objects.get(pk=item_id, hunt__id=hunt_id)
-            transactions = Transaction.objects.filter(item=item).select_related('player')
+            transactions = Transaction.objects.filter(item=item, hunt=hunt).select_related('player')
             return render(request, 'frontend/view_item.html', {'item': item, 'transactions': transactions})
         except AuthorizedUsers.DoesNotExist:
             logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
-            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
+            return render(request, 'frontend/view_item.html', {'error': 'Server Error'}, status=403)
         except Item.DoesNotExist:
             logging.warning('Attempt to access unauthorized item. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
-            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
+            return render(request, 'frontend/view_item.html', {'error': 'Server Error'}, status=403)
         except Exception as ex:
             logging.exception('Failed to view item')
-            return render(request, 'frontend/view_item.html', {'error': 'Invalid hunt'}, status=403)
+            return render(request, 'frontend/view_item.html', {'error': 'Server Error'}, status=403)
+
+
+# TODO: Test to make sure we're only getting transactions for this player's hunt
+class PlayerView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id, player_id):
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            player = Player.objects.get(pk=player_id, hunt__id=hunt_id)
+            transactions = Transaction.objects.filter(player=player, hunt=hunt).select_related('region')
+            total_points = player.get_total_points(hunt)
+            items_purchased = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_PRIZE and transaction.player == player]
+            items_found = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_CREDIT and transaction.player == player]
+            return render(request, 'frontend/view_player.html', {
+                'player': player,
+                'total_points': total_points,
+                'items_found': len(items_found),
+                'items_purchased': len(items_purchased),
+                'transactions': transactions
+            })
+
+        except AuthorizedUsers.DoesNotExist:
+            logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
+            return render(request, 'frontend/view_player.html', {'error': 'Server Error'}, status=403)
+        except Player.DoesNotExist:
+            logging.warning('Attempt to access unauthorized player. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
+            return render(request, 'frontend/view_player.html', {'error': 'Server Error'}, status=403)
+        except Exception as ex:
+            logging.exception('Failed to view item')
+            return render(request, 'frontend/view_player.html', {
+                'error': 'Server Error'
+            }, status=403)

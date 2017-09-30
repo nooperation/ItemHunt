@@ -36,7 +36,7 @@
             {% load custom_filters %}
             {% for player in players %}
                 <tr>
-                    <td><a href="#">{{ player.name }}</a></td>
+                    <td><a href="{% url 'frontend:view_player' hunt.id player.id %}">{{ player.name }}</a></td>
                     <td>{{ player|player_points:hunt }}</td>
                     <td class="text-right">{{ player.uuid }}</td>
                 </tr>
