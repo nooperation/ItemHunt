@@ -7,14 +7,16 @@
     <thead>
         <tr>
             <th>Name</th>
+            <th></th>
             <th class="text-right">Date</th>
         </tr>
     </thead>
     <tbody>
-    {% for item in hunt_list %}
+    {% for hunt in hunt_list %}
     <tr>
-        <td><a href="{% url 'frontend:view_hunt' item.id %}">{{ item.name }}</a></td>
-        <td class="text-right">{{ item.created_on }}</td>
+        <td><a href="{% url 'frontend:view_hunt' hunt.id %}">{{ hunt.name }}</a></td>
+        <td><a href="{% url 'frontend:generate_token' hunt.id %}">Generate Token</a></td>
+        <td class="text-right">{{ hunt.created_on }}</td>
     </tr>
     {% endfor %}
     </tbody>

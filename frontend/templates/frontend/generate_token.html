@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Home</h1>
+    {% if error %}
+        <h2>Error</h2>
+        <h3>{{ error }}</h3>
+    {% else %}
+        <h2>Success</h2>
+        <h3>Your token link:</h3>
+        <h4><a href="{% url 'frontend:register_token' token %}">{{ request.META.HTTP_HOST }}{% url 'frontend:register_token' token %}</a></h4>
+    {% endif %}
+{% endblock %}
