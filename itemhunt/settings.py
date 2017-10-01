@@ -163,11 +163,9 @@ LOGGING = {
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['logfile', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
+    'root': {
+        'handlers': ['logfile', 'console'],
+        'level': 'INFO',
+        'propagate': True,
     },
 }
