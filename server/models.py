@@ -167,7 +167,16 @@ class Item(models.Model):
 
 class Transaction(models.Model):
     def __str__(self):
-        return '{} - {}'.format(self.created_on.strftime("%Y-%m-%d %H:%M:%S"), self.player.name)
+        if self.points < 0:
+            return '{} - {}'.format(self.get_type_name(), self.player.name)
+        else:
+            return '{} - {}'.format(self.get_type_name(), self.player.name)
+
+    def get_type_name(self):
+        if self.points >= 0:
+            return 'Find'
+        else:
+            return 'Buy'
 
     points = models.IntegerField()
     player_x = models.FloatField()
