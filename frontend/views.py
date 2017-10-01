@@ -177,3 +177,35 @@ class PlayerView(LoginRequiredMixin, generic.View):
         return render(request, 'frontend/view_player.html', {
             'error': 'Server Error'
         }, status=403)
+
+
+class GenerateTokenView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            token = hunt.create_hunt_auth_token()
+
+            request.breadcrumbs.append({
+                'name': hunt,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt_id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Generate Token',
+            })
+            return render(request, 'frontend/generate_token.html', {
+                'hunt': hunt,
+                'token': token.token
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning('Attempt to generate token for unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to generate token')
+
+        return render(request, 'frontend/view_hunt.html', {
+            'error': 'Server Error'
+        }, status=403)
