@@ -1,30 +1,15 @@
-// Server data
-string URL_REGISTER = "https://itemhunt.nooperation.net/server/register_item";
-string URL_ACTIVATE = "https://itemhunt.nooperation.net/server/activate_item";
 string URL_GET_TOTAL_POINTS = "https://itemhunt.nooperation.net/server/get_total_points";
-integer TYPE_CREDIT = 0;
-integer TYPE_PRIZE = 1;
-
-integer itemType = TYPE_CREDIT;
-integer points = 15;
 
 string CONFIG_PATH = "Config";
 integer currentConfigLine = 0;
 key configQueryId = NULL_KEY;
 string privateToken = "";
-key httpRequestId = NULL_KEY;
 
 string JSON_RESULT_SUCCESS = "success";
 string JSON_RESULT_ERROR = "error";
 string JSON_TAG_RESULT = "result";
 string JSON_TAG_PAYLOAD = "payload";
 string JSON_TAG_TARGET_UUID = "target_uuid";
-
-// Previous String Examples:
-//   Sorry, you took too long to respond to the confirmation dialog!  Click on the prize box again if you would like to spend your points on this prize.
-//   You have enough points for that :)
-//   You have 280 points.
-//   5 points recorded
 
 Output(string message)
 {
@@ -93,7 +78,6 @@ integer ReadConfig()
     {
         if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
         {
-            Output("Reading config...");
             currentConfigLine = 0;
             configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
             return TRUE;
@@ -111,8 +95,6 @@ default
 {
     state_entry()
     {
-        Output("Fresh state");
-
         if(!ReadConfig())
         {
             Output("Failed to read config");
@@ -200,7 +182,6 @@ default
     {
         if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START | CHANGED_INVENTORY))
         {
-            Output("Resetting...");
             llResetScript();
         }
     }
