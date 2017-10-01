@@ -298,3 +298,14 @@ class GetTotalPointsView(generic.View):
         except Exception:
             log.exception("Failed to get total points for uuid '{}'".format(player_uuid))
             return JsonResponse(json_error_to(NULL_KEY, 'Server error'))
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PurgeExpiredTokensView(generic.View):
+    def get(self, request):
+        try:
+            HuntAuthorizationToken.delete_all_expired()
+            return JsonResponse(json_success('OK'))
+        except Exception:
+            log.exception("Failed to purge expired tokens")
+            return JsonResponse(json_error('Server error'))
