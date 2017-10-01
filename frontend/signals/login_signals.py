@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 @receiver(user_logged_in)
 def user_logged_in_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
-    log.warning('Login SUCCESS: [{ip}] USer: {user}'.format(
+    log.warning('Login SUCCESS: [{ip}] User: {user}'.format(
         ip=ip,
         user=user.username,
     ))
