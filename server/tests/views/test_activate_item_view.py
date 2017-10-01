@@ -268,3 +268,14 @@ class ActivateItemView(TestCase):
         self.assertTrue(is_json_error(response.json()))
 
         self.assertEquals(self.first_player.get_total_points(self.hunt), 15)
+
+    def test_activate_disabled_hunt(self):
+        self.server_data['points'] = 100
+        self.hunt.enabled = False
+        self.hunt.save()
+
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_error(response.json()))
+
+        self.assertEquals(self.first_player.get_total_points(self.hunt), 0)
