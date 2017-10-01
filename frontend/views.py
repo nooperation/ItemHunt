@@ -77,8 +77,8 @@ class HuntView(LoginRequiredMixin, generic.View):
 
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt__id=hunt_id)
-            players = Player.objects.filter(hunt__id=hunt_id)
+            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt)
+            players = Player.objects.filter(hunt=hunt)
 
             request.breadcrumbs.append({
                 'name': hunt.name,
@@ -93,10 +93,10 @@ class HuntView(LoginRequiredMixin, generic.View):
         except Exception as ex:
             log.exception('Failed to view hunt')
 
-        request.breadcrumbs = []
         return render(request, 'frontend/view_hunt.html', {
             'error': 'Server Error'
         }, status=403)
+
 
 # TODO: Test to make sure we're only getting transactions for this item's hunt
 class ItemView(LoginRequiredMixin, generic.View):
@@ -108,7 +108,7 @@ class ItemView(LoginRequiredMixin, generic.View):
 
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            item = Item.objects.get(pk=item_id, hunt__id=hunt_id)
+            item = Item.objects.get(pk=item_id, hunt=hunt)
             transactions = Transaction.objects.filter(item=item, hunt=hunt).select_related('player')
 
             request.breadcrumbs.append({
@@ -145,7 +145,7 @@ class PlayerView(LoginRequiredMixin, generic.View):
 
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            player = Player.objects.get(pk=player_id, hunt__id=hunt_id)
+            player = Player.objects.get(pk=player_id, hunt=hunt)
             transactions = Transaction.objects.filter(player=player, hunt=hunt).select_related('region')
             total_points = player.get_total_points(hunt)
             items_purchased = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_PRIZE and transaction.player == player]

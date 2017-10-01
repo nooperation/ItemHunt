@@ -231,3 +231,17 @@ class GetTotalPointsView(TestCase):
         response = self.post_with_metadata(reverse('server:register_item'), server_data)
         self.assertEquals(response.status_code, 200)
         self.assertTrue(is_json_success(response.json()))
+
+    def test_disabled_hunt(self):
+        server_data = dict(
+            private_token=self.hunt.private_token,
+            points=10,
+            type=Item.TYPE_PRIZE,
+        )
+
+        self.hunt.enabled = False
+        self.hunt.save()
+
+        response = self.post_with_metadata(reverse('server:register_item'), server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_error(response.json()))

@@ -84,6 +84,10 @@ class ActivateItemView(generic.View):
                 self.log_failure("Invalid hunt", request)
                 return JsonResponse(json_error_to(player_uuid, 'Invalid hunt specified'))
 
+            if not hunt.enabled:
+                self.log_failure("Hunt is disabled", request)
+                return JsonResponse(json_error_to(player_uuid, 'Hunt is disabled'))
+
             try:
                 item = Item.objects.get(uuid=sl_header['object_key'], hunt=hunt)
             except Item.DoesNotExist:
@@ -186,6 +190,10 @@ class RegisterItemView(generic.View):
             except Hunt.DoesNotExist:
                 self.log_failure("Invalid hunt", request)
                 return JsonResponse(json_error('Invalid hunt specified'))
+
+            if not hunt.enabled:
+                self.log_failure("Hunt is disabled", request)
+                return JsonResponse(json_error('Hunt is disabled'))
 
             try:
                 region = Region.objects.get(name=sl_header['region'])
