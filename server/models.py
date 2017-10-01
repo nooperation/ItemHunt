@@ -7,6 +7,8 @@ import base64
 from datetime import datetime, timedelta, timezone
 import logging
 
+log = logging.getLogger(__name__)
+
 
 def generate_token():
     token = None
@@ -73,7 +75,7 @@ class HuntAuthorizationToken(models.Model):
             expired_tokens = HuntAuthorizationToken.objects.filter(created_on__lte=expiration_date)
             expired_tokens.delete()
         except Exception as ex:
-            logging.exception('Failed to delete all expired', ex)
+            log.exception('Failed to delete all expired', ex)
 
     token = models.CharField(max_length=64, unique=True, validators=[MinLengthValidator(8)], default=generate_token)
     hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)

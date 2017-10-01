@@ -14,13 +14,15 @@
         </div>
         <ul class="navbar-nav mr-auto">
              <nav>
-                {% for breadcrumb in request.breadcrumbs %}
-                        {% if breadcrumb.path %}
-                            <a class="breadcrumb-item text-light" href="{{ breadcrumb.path }}">{{ breadcrumb.name }}</a>
-                        {% else %}
-                            <span class="breadcrumb-item active">{{ breadcrumb.name }}</span>
-                        {% endif %}
-                {% endfor %}
+                {% block request.breadcrumbs %}
+                    {% for breadcrumb in request.breadcrumbs %}
+                            {% if breadcrumb.path %}
+                                <a class="breadcrumb-item text-light" href="{{ breadcrumb.path }}">{{ breadcrumb.name }}</a>
+                            {% else %}
+                                <span class="breadcrumb-item active">{{ breadcrumb.name }}</span>
+                            {% endif %}
+                    {% endfor %}
+                {% endblock %}
             </nav>
         </ul>
         <ul class="navbar-nav ml-auto">

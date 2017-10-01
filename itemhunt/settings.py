@@ -66,6 +66,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'itemhunt.context_processors.custom_processors.breadcrumbs_processor',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -134,3 +135,35 @@ ROOT_PATH = os.path.dirname(__file__)
 STATICFILES_DIRS = [
     os.path.join(ROOT_PATH, 'static')
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'logfile': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(ROOT_PATH, '..', 'logs', 'ItemHunt.log'),
+            'maxBytes': 1024*1024*5,
+            'backupCount': 0,
+            'formatter': 'simple',
+        },
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s|%(message)s'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['logfile', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
