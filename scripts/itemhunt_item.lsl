@@ -99,7 +99,6 @@ integer ReadConfig()
     {
         if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
         {
-            Output("Reading config...");
             currentConfigLine = 0;
             configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
             return TRUE;
@@ -170,7 +169,7 @@ default
         points = (integer)description;
         if((string)points != description)
         {
-          Output("ERROR: Description must contain the point value of this prize or treasure");
+          Output("ERROR: Description must contain the point value");
           return;
         }
 
@@ -241,15 +240,6 @@ default
                     return;
                 }
 
-                if(itemType == TYPE_CREDIT)
-                {
-                  Output("Registering hunt item worth " + (string)points + " points");
-                }
-                else
-                {
-                  Output("Registering prize with cost of " + (string)points + " points");
-                }
-
                 string post_data_str =
                   "private_token=" + privateToken +
                   "&points=" + (string)points +
@@ -283,7 +273,14 @@ default
 
         if(result == JSON_RESULT_SUCCESS)
         {
-            Output("Successfully registered: " + payload);
+            if(itemType == TYPE_CREDIT)
+            {
+              Output("Updated hunt item worth " + (string)points + " points");
+            }
+            else
+            {
+              Output("Updated prize costing " + (string)points + " points");
+            }
             state Initialized;
         }
     }
@@ -306,8 +303,6 @@ state Initialized
 {
     state_entry()
     {
-        Output("Script running");
-
         if(itemType == TYPE_PRIZE)
         {
           listen_channel = GetChannel();
@@ -360,7 +355,6 @@ state Initialized
     {
         if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START | CHANGED_INVENTORY))
         {
-            Output("Resetting...");
             llResetScript();
         }
     }
@@ -391,8 +385,6 @@ state Initialized
             if(itemType == TYPE_PRIZE)
             {
               OutputTo(target_uuid, "You have successfully purchased this prize! You have " + total_points + " points remaining");
-
-              Output("Prize list = " + llDumpList2String(prize_list, ", "));
 
               if(prize_list_length > 1)
               {
