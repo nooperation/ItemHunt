@@ -8,6 +8,8 @@ from django.views import generic
 from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction, Player
 import logging
 
+log = logging.getLogger(__name__)
+
 
 class IndexView(LoginRequiredMixin, generic.View):
     def get(self, request):
@@ -60,7 +62,7 @@ class RegisterTokenView(LoginRequiredMixin, generic.View):
                 'hunt_name': hunt.name
             })
         except Exception as ex:
-            logging.exception('Failed to register token')
+            log.exception('Failed to register token')
             return render(request, 'frontend/register_token.html', {
                 'error': 'Invalid token'
             }, status=400)
@@ -87,9 +89,9 @@ class HuntView(LoginRequiredMixin, generic.View):
                 'players': players
             })
         except AuthorizedUsers.DoesNotExist:
-            logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+            log.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
         except Exception as ex:
-            logging.exception('Failed to view hunt')
+            log.exception('Failed to view hunt')
 
         request.breadcrumbs = []
         return render(request, 'frontend/view_hunt.html', {
@@ -121,11 +123,11 @@ class ItemView(LoginRequiredMixin, generic.View):
                 'transactions': transactions
             })
         except AuthorizedUsers.DoesNotExist:
-            logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
+            log.warning('Attempt to access unauthorized hunt. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
         except Item.DoesNotExist:
-            logging.warning('Attempt to access unauthorized item. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
+            log.warning('Attempt to access unauthorized item. User={} hunt_id={} item_id={}'.format(request.user.username, hunt_id, item_id))
         except Exception as ex:
-            logging.exception('Failed to view item')
+            log.exception('Failed to view item')
 
         request.breadcrumbs = []
         return render(request, 'frontend/view_item.html', {
@@ -165,11 +167,11 @@ class PlayerView(LoginRequiredMixin, generic.View):
             })
 
         except AuthorizedUsers.DoesNotExist:
-            logging.warning('Attempt to access unauthorized hunt. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
+            log.warning('Attempt to access unauthorized hunt. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
         except Player.DoesNotExist:
-            logging.warning('Attempt to access unauthorized player. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
+            log.warning('Attempt to access unauthorized player. User={} hunt_id={} player_id={}'.format(request.user.username, hunt_id, player_id))
         except Exception as ex:
-            logging.exception('Failed to view item')
+            log.exception('Failed to view item')
 
         request.breadcrumbs = []
         return render(request, 'frontend/view_player.html', {

@@ -8,6 +8,8 @@ from server.models import *
 import logging
 import re
 
+log = logging.getLogger(__name__)
+
 JSON_RESULT_SUCCESS = 'success'
 JSON_RESULT_ERROR = 'error'
 JSON_TAG_RESULT = 'result'
@@ -142,7 +144,7 @@ class ActivateItemView(generic.View):
             total_points = player.get_total_points(hunt)
             return JsonResponse(json_success_to(player_uuid, {'points': points, 'total_points': total_points}))
         except Exception:
-            logging.exception("Failed to activate player '{}' with uuid '{}'".format(player_name, player_uuid))
+            log.exception("Failed to activate player '{}' with uuid '{}'".format(player_name, player_uuid))
             self.log_failure("Server error", request)
             return JsonResponse(json_error_to(player_uuid, 'Server error'))
 
@@ -156,7 +158,7 @@ class ActivateItemView(generic.View):
         object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
         object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-        logging.info("Activation FaILED:: {} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+        log.info("Activation FaILED:: {} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
            message,
            points,
            player_name,
@@ -234,7 +236,7 @@ class RegisterItemView(generic.View):
                 return JsonResponse(json_error('Points cannot be negative'))
             return JsonResponse(json_error('Server error'))
         except Exception:
-            logging.exception("Failed to register item")
+            log.exception("Failed to register item")
             self.log_failure("Failed to register item", request)
             return JsonResponse(json_error('Server error'))
 
@@ -247,7 +249,7 @@ class RegisterItemView(generic.View):
         object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
         object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-        logging.info("Registration FAILED: {} points='{}' item_type='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+        log.info("Registration FAILED: {} points='{}' item_type='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
            message,
            points,
            item_type,
@@ -270,7 +272,7 @@ class GetTotalPointsView(generic.View):
             player_uuid = request.POST.get('player_uuid')
 
             if not is_valid_uuid(player_uuid):
-                logging.warning("Invalid UUID passed to GetTotalPointsView: '{}'".format(player_uuid))
+                log.warning("Invalid UUID passed to GetTotalPointsView: '{}'".format(player_uuid))
                 return JsonResponse(json_error('Server error'))
 
             try:
@@ -286,5 +288,5 @@ class GetTotalPointsView(generic.View):
             total_points = player.get_total_points(hunt)
             return JsonResponse(json_success_to(player_uuid, {'total_points': total_points}))
         except Exception:
-            logging.exception("Failed to get total points for uuid '{}'".format(player_uuid))
+            log.exception("Failed to get total points for uuid '{}'".format(player_uuid))
             return JsonResponse(json_error_to(NULL_KEY, 'Server error'))
