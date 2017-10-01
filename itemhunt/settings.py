@@ -145,7 +145,7 @@ LOGGING = {
             'filename': os.path.join(ROOT_PATH, '..', 'logs', 'ItemHunt.log'),
             'maxBytes': 1024*1024*5,
             'backupCount': 0,
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
         'console':{
             'level': 'DEBUG',
@@ -154,8 +154,13 @@ LOGGING = {
         },
     },
     'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
         'simple': {
-            'format': '%(levelname)s|%(message)s'
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
         },
     },
     'loggers': {
