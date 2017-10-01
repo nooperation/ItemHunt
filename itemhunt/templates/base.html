@@ -4,7 +4,48 @@
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-    <link href="{% static 'custom.css' %}" rel="stylesheet">
+    <style>
+        .form-signin {
+          max-width: 330px;
+          padding: 15px;
+          margin: 0 auto;
+        }
+        .form-signin .form-signin-heading,
+        .form-signin .checkbox {
+          margin-bottom: 10px;
+        }
+        .form-signin .checkbox {
+          font-weight: normal;
+        }
+        .form-signin .form-control {
+          position: relative;
+          height: auto;
+          -webkit-box-sizing: border-box;
+                  box-sizing: border-box;
+          padding: 10px;
+          font-size: 16px;
+        }
+        .form-signin .form-control:focus {
+          z-index: 2;
+        }
+        input#id_username.form-control {
+          border-bottom-right-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+        input#id_password.form-control {
+          border-top-left-radius: 0;
+          border-top-right-radius: 0;
+          margin-bottom: 10px;
+        }
+        input#id_password1.form-control {
+          border-radius: 0;
+        }
+        input#id_password2.form-control {
+          border-top-left-radius: 0;
+          border-top-right-radius: 0;
+          margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
