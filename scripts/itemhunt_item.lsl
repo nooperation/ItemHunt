@@ -276,10 +276,12 @@ default
             if(itemType == TYPE_CREDIT)
             {
               Output("Updated hunt item worth " + (string)points + " points");
+              llSetText("", ZERO_VECTOR, 1.0);
             }
             else
             {
               Output("Updated prize costing " + (string)points + " points");
+              llSetText((string)points + " points", <1, 1, 1>, 1.0);
             }
             state Initialized;
         }
