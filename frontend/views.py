@@ -80,23 +80,18 @@ class HuntView(LoginRequiredMixin, generic.View):
 
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt)
-            hunt_items = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt)
-            players = Player.objects.filter(hunt=hunt)
-
-            transactions = Transaction.objects.filter(hunt=hunt).values('item_id').annotate(Count('item_id'))
-            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
-            transactions = ChainMap(*transactions)
+            prize_count = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt).count()
+            item_count = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt).count()
+            player_count = Player.objects.filter(hunt=hunt).count()
 
             request.breadcrumbs.append({
                 'name': hunt.name,
             })
             return render(request, 'frontend/view_hunt.html', {
                 'hunt': hunt,
-                'store_items': store_items,
-                'hunt_items': hunt_items,
-                'transactions': transactions,
-                'players': players
+                'prize_count': prize_count,
+                'item_count': item_count,
+                'player_count': player_count
             })
         except AuthorizedUsers.DoesNotExist:
             log.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
@@ -104,6 +99,115 @@ class HuntView(LoginRequiredMixin, generic.View):
             log.exception('Failed to view hunt')
 
         return render(request, 'frontend/view_hunt.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class HuntItemsView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            hunt_items = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt)
+
+            transactions = Transaction.objects.filter(hunt=hunt).values('item_id').annotate(Count('item_id'))
+            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
+            transactions = ChainMap(*transactions)
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Items',
+            })
+            return render(request, 'frontend/view_hunt_items.html', {
+                'hunt': hunt,
+                'hunt_items': hunt_items,
+                'transactions': transactions,
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning(
+                'Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt_items.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class HuntPrizesView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt)
+
+            transactions = Transaction.objects.filter(hunt=hunt).values('item_id').annotate(Count('item_id'))
+            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
+            transactions = ChainMap(*transactions)
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Prizes',
+            })
+            return render(request, 'frontend/view_hunt_prizes.html', {
+                'hunt': hunt,
+                'store_items': store_items,
+                'transactions': transactions,
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning(
+                'Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt_prizes.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class HuntPlayersView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            players = Player.objects.filter(hunt=hunt)
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Players',
+            })
+            return render(request, 'frontend/view_hunt_players.html', {
+                'hunt': hunt,
+                'players': players
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning(
+                'Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt_players.html', {
             'error': 'Server Error'
         }, status=403)
 
