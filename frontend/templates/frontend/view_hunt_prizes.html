@@ -13,6 +13,7 @@
                     <th>Name</th>
                     <th>Count</th>
                     <th>Points</th>
+                    <th>Region</th>
                     <th class="text-right">Date</th>
                 </tr>
             </thead>
@@ -22,6 +23,7 @@
                     <td><a href="{% url 'frontend:view_item' hunt.id item.id %}">{{ item.name }}</a></td>
                     <td>{{ item | transaction_count:transactions }}</td>
                     <td>{{ item.points }}</td>
+                    <td>{{ item | item_location | safe }}</td>
                     <td class="text-right">{{ item.created_on }}</td>
                 </tr>
             {% endfor %}
