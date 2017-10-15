@@ -163,7 +163,7 @@ class ActivateItemView(generic.View):
         object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
         object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-        log.info("Activation: {} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+        log.info("Activation: {} points='{}' player='{}' player_uuid='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}'".format(
            message,
            points,
            player_name,
@@ -173,7 +173,6 @@ class ActivateItemView(generic.View):
            sl_header['object_key'],
            sl_header['object_name'],
            sl_header['owner_key'],
-           request.META['REMOTE_ADDR']
         ))
 
 
@@ -259,7 +258,7 @@ class RegisterItemView(generic.View):
         object_position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION']
         object_region = request.META['HTTP_X_SECONDLIFE_REGION']
 
-        log.info("Registration: {} points='{}' item_type='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}' address='{}'".format(
+        log.info("Registration: {} points='{}' item_type='{}' region='{}' object_position='{}' object_key='{}' object_name='{}' owner_key='{}'".format(
            message,
            points,
            item_type,
@@ -268,7 +267,6 @@ class RegisterItemView(generic.View):
            sl_header['object_key'],
            sl_header['object_name'],
            sl_header['owner_key'],
-           request.META['REMOTE_ADDR']
         ))
 
 @method_decorator(csrf_exempt, name='dispatch')
