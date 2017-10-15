@@ -53,3 +53,9 @@ def transaction_location(transaction):
         transaction.item_y,
         transaction.item_z,
     )
+
+@register.filter(name='transaction_count')
+def transaction_count(item, all_transactions):
+    if item.id in all_transactions:
+        return all_transactions[item.id]
+    return 0
