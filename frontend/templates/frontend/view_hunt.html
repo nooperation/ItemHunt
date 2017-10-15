@@ -6,67 +6,27 @@
     {% else %}
     {% load custom_filters %}
         <h1 class="text-center">{{ hunt.name }}</h1>
-        <h2>Store Items</h2>
+        <h2>Overview</h2>
         <table class="table table-striped table-hover ">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Count</th>
-                    <th>Points</th>
-                    <th class="text-right">Date</th>
                 </tr>
             </thead>
             <tbody>
-            {% for item in store_items %}
                 <tr>
-                    <td><a href="{% url 'frontend:view_item' hunt.id item.id %}">{{ item.name }}</a></td>
-                    <td>{{ item | transaction_count:transactions }}</td>
-                    <td>{{ item.points }}</td>
-                    <td class="text-right">{{ item.created_on }}</td>
+                    <td><a href="{% url 'frontend:view_hunt_players' hunt.id %}">Players</a></td>
+                    <td>{{ player_count }}</td>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br />
-        <h2>Hunt Items</h2>
-        <table class="table table-striped table-hover ">
-            <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Count</th>
-                    <th>Points</th>
-                    <th class="text-right">Date</th>
+                    <td><a href="{% url 'frontend:view_hunt_prizes' hunt.id %}">Prizes</a></td>
+                    <td>{{ prize_count }}</td>
                 </tr>
-            </thead>
-            <tbody>
-            {% for item in hunt_items %}
                 <tr>
-                    <td><a href="{% url 'frontend:view_item' hunt.id item.id %}">{{ item.name }}</a></td>
-                    <td>{{ item | transaction_count:transactions }}</td>
-                    <td>{{ item.points }}</td>
-                    <td class="text-right">{{ item.created_on }}</td>
+                    <td><a href="{% url 'frontend:view_hunt_items' hunt.id %}">Items</a></td>
+                    <td>{{ item_count }}</td>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br />
-        <h2>Players</h2>
-        <table class="table table-striped table-hover ">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Points</th>
-                    <th class="text-right">UUID</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for player in players %}
-                <tr>
-                    <td><a href="{% url 'frontend:view_player' hunt.id player.id %}">{{ player.name }}</a></td>
-                    <td>{{ player|player_points:hunt }}</td>
-                    <td class="text-right">{{ player.uuid }}</td>
-                </tr>
-            {% endfor %}
             </tbody>
         </table>
     {% endif %}
