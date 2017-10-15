@@ -8,7 +8,7 @@ from django import template
 # Create your views here.
 from django.urls import reverse
 from django.views import generic
-from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction, Player
+from server.models import Hunt, HuntAuthorizationToken, AuthorizedUsers, Item, Transaction, Player, Region
 import logging
 
 log = logging.getLogger(__name__)
@@ -83,6 +83,7 @@ class HuntView(LoginRequiredMixin, generic.View):
             prize_count = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt).count()
             item_count = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt).count()
             player_count = Player.objects.filter(hunt=hunt).count()
+            region_count = Transaction.objects.filter(hunt=hunt).values('region__name').distinct().count()
 
             request.breadcrumbs.append({
                 'name': hunt.name,
@@ -91,7 +92,8 @@ class HuntView(LoginRequiredMixin, generic.View):
                 'hunt': hunt,
                 'prize_count': prize_count,
                 'item_count': item_count,
-                'player_count': player_count
+                'player_count': player_count,
+                'region_count': region_count
             })
         except AuthorizedUsers.DoesNotExist:
             log.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
@@ -99,6 +101,130 @@ class HuntView(LoginRequiredMixin, generic.View):
             log.exception('Failed to view hunt')
 
         return render(request, 'frontend/view_hunt.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class HuntRegionsView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            region_stats = []
+
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            regions = Region.objects.all()
+            for region in regions:
+                prize_count = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt, region=region).count()
+                item_count = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt, region=region).count()
+                region_stats.append({'region': region, 'hunt': hunt, 'prize_count': prize_count, 'item_count': item_count})
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Regions',
+            })
+            return render(request, 'frontend/view_hunt_regions.html', {
+                'hunt': hunt,
+                'region_stats': region_stats,
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning('Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class RegionItemsView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id, region_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            region = Region.objects.get(id=region_id)
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            hunt_items = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt, region=region)
+
+            transactions = Transaction.objects.filter(hunt=hunt, region=region).values('item_id').annotate(Count('item_id'))
+            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
+            transactions = ChainMap(*transactions)
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Regions',
+                'path': reverse('frontend:view_hunt_regions', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': region.name + ' Items',
+            })
+            return render(request, 'frontend/view_hunt_items.html', {
+                'hunt': hunt,
+                'hunt_items': hunt_items,
+                'transactions': transactions,
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning(
+                'Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt.html', {
+            'error': 'Server Error'
+        }, status=403)
+
+
+class RegionPrizesView(LoginRequiredMixin, generic.View):
+    def get(self, request, hunt_id, region_id):
+        request.breadcrumbs = [{
+            'name': 'Home',
+            'path': reverse('frontend:index', kwargs={})
+        }]
+
+        try:
+            region = Region.objects.get(id=region_id)
+            hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
+            store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt, region=region)
+
+            transactions = Transaction.objects.filter(hunt=hunt, region=region).values('item_id').annotate(Count('item_id'))
+            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
+            transactions = ChainMap(*transactions)
+
+            request.breadcrumbs.append({
+                'name': hunt.name,
+                'path': reverse('frontend:view_hunt', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': 'Regions',
+                'path': reverse('frontend:view_hunt_regions', kwargs={'hunt_id': hunt.id})
+            })
+            request.breadcrumbs.append({
+                'name': region.name + ' Prizes',
+            })
+            return render(request, 'frontend/view_hunt_prizes.html', {
+                'hunt': hunt,
+                'store_items': store_items,
+                'transactions': transactions,
+            })
+        except AuthorizedUsers.DoesNotExist:
+            log.warning(
+                'Attempt to access unauthorized hunt. User={} hunt_id={}'.format(request.user.username, hunt_id))
+        except Exception as ex:
+            log.exception('Failed to view hunt')
+
+        return render(request, 'frontend/view_hunt_prizes.html', {
             'error': 'Server Error'
         }, status=403)
 

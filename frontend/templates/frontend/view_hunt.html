@@ -27,6 +27,10 @@
                     <td><a href="{% url 'frontend:view_hunt_items' hunt.id %}">Items</a></td>
                     <td>{{ item_count }}</td>
                 </tr>
+                <tr>
+                    <td><a href="{% url 'frontend:view_hunt_regions' hunt.id %}">Regions</a></td>
+                    <td>{{ region_count }}</td>
+                </tr>
             </tbody>
         </table>
     {% endif %}
