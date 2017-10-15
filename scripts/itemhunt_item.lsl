@@ -1,4 +1,4 @@
-integer MAX_ACTIVATION_DISTANCE = 4;
+integer MAX_ACTIVATION_DISTANCE = 5;
 
 // Server data
 string URL_REGISTER = "https://itemhunt.nooperation.net/server/register_item";
@@ -10,6 +10,7 @@ integer itemType = TYPE_CREDIT;
 integer points = 0;
 list prize_list = [];
 integer prize_list_length = 0;
+integer points_found_in_config = FALSE;
 
 string CONFIG_PATH = "Config";
 integer currentConfigLine = 0;
@@ -74,6 +75,11 @@ processTriggerLine(string line)
     if(name == "privatetoken")
     {
         privateToken = value;
+    }
+    else if(itemType == TYPE_CREDIT && name == "points")
+    {
+        points_found_in_config = TRUE;
+        points = (integer)value;
     }
 }
 
@@ -168,19 +174,6 @@ default
         position = llGetPos();
         llSetTimerEvent(5);
 
-        points = (integer)description;
-        if((string)points != description)
-        {
-          Output("ERROR: Description must contain the point value");
-          return;
-        }
-
-        if(points < 0)
-        {
-          Output("ERROR: Negative point value detected");
-          return;
-        }
-
         integer totalItems = llGetInventoryNumber(INVENTORY_OBJECT);
         if(totalItems > 0)
         {
@@ -213,10 +206,20 @@ default
           }
         }
 
-        if(itemType == TYPE_CREDIT && points == 0)
+        if(itemType == TYPE_PRIZE)
         {
-          Output("ERROR: Only store items can have a zero point value");
-          return;
+          points = (integer)description;
+          if((string)points != description)
+          {
+            Output("ERROR: Description must contain the point value for prizes");
+            return;
+          }
+
+          if(points < 0)
+          {
+            Output("ERROR: Negative point value detected");
+            return;
+          }
         }
 
         if(!ReadConfig())
@@ -240,6 +243,20 @@ default
                 {
                     Output("ERROR: Missing auth token");
                     return;
+                }
+
+                if(itemType == TYPE_CREDIT && points == 0)
+                {
+                  if(points_found_in_config == FALSE)
+                  {
+                    Output("ERROR: Hunt items must have a points value in the config file");
+                    return;
+                  }
+                  if(points == 0)
+                  {
+                    Output("ERROR: Only store items can have a zero point value");
+                    return;
+                  }
                 }
 
                 string post_data_str =
@@ -353,7 +370,7 @@ state Initialized
                 }
                 else
                 {
-                  OutputTo(target_uuid, "You are too far away");
+                  OutputTo(llDetectedKey(i), "You are too far away");
                 }
             }
             else if(itemType == TYPE_PRIZE)
