@@ -1,4 +1,7 @@
+from collections import ChainMap
+
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count
 from django.shortcuts import render, redirect
 from django import template
 
@@ -78,7 +81,12 @@ class HuntView(LoginRequiredMixin, generic.View):
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
             store_items = Item.objects.filter(type=Item.TYPE_PRIZE, hunt=hunt)
+            hunt_items = Item.objects.filter(type=Item.TYPE_CREDIT, hunt=hunt)
             players = Player.objects.filter(hunt=hunt)
+
+            transactions = Transaction.objects.filter(hunt=hunt).values('item_id').annotate(Count('item_id'))
+            transactions = [{item['item_id']: item['item_id__count']} for item in transactions]
+            transactions = ChainMap(*transactions)
 
             request.breadcrumbs.append({
                 'name': hunt.name,
@@ -86,6 +94,8 @@ class HuntView(LoginRequiredMixin, generic.View):
             return render(request, 'frontend/view_hunt.html', {
                 'hunt': hunt,
                 'store_items': store_items,
+                'hunt_items': hunt_items,
+                'transactions': transactions,
                 'players': players
             })
         except AuthorizedUsers.DoesNotExist:
