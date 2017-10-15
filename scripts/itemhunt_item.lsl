@@ -1,3 +1,5 @@
+integer MAX_ACTIVATION_DISTANCE = 4;
+
 // Server data
 string URL_REGISTER = "https://itemhunt.nooperation.net/server/register_item";
 string URL_ACTIVATE = "https://itemhunt.nooperation.net/server/activate_item";
@@ -344,7 +346,15 @@ state Initialized
         {
             if(itemType == TYPE_CREDIT)
             {
-                ActivateItem(llDetectedKey(i));
+                float distance = llVecDist(llDetectedPos(i), llGetPos());
+                if(distance <= MAX_ACTIVATION_DISTANCE)
+                {
+                  ActivateItem(llDetectedKey(i));
+                }
+                else
+                {
+                  OutputTo(target_uuid, "You are too far away");
+                }
             }
             else if(itemType == TYPE_PRIZE)
             {
