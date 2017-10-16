@@ -188,9 +188,14 @@ default
                 return;
               }
 
-              if(llGetInventoryPermMask(itemName, MASK_BASE) & PERM_COPY)
+              integer itemPremissions = llGetInventoryPermMask(itemName, MASK_BASE);
+              if(itemPremissions & PERM_COPY && itemPremissions & PERM_TRANSFER)
               {
                 prize_list += itemName;
+              }
+              else
+              {
+                Output("WARNING: no-transfer or no-copy object detected: '" + itemName + "'");
               }
           }
 
