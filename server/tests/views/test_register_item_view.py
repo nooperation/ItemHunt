@@ -31,7 +31,7 @@ def post_with_metadata(client, address, server, params):
 
 class GetTotalPointsView(TestCase):
     def setUp(self):
-        self.region = Region.objects.create(name='FirstRegion')
+        self.region = Region.objects.create(name='First Region')
         self.hunt = Hunt.objects.create(
             name='First hunt',
             private_token='j14WVsOPsIdzQIZGQeymFmpPv4LqpHQWck8ua0ZdCY71'

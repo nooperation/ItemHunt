@@ -19,10 +19,11 @@ JSON_TAG_TARGET_UUID = 'target_uuid'
 NULL_KEY = '00000000-0000-0000-0000-000000000000'
 PATTERN_KEY = '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
 
+
 def get_lsl_headers(request):
     position = request.META['HTTP_X_SECONDLIFE_LOCAL_POSITION'][1:-1].split(', ')
-    region = request.META['HTTP_X_SECONDLIFE_REGION'].split(' ')
-    region_name = region[0]
+    region_matches = re.match(r"(.*) \(([0-9]+), ([0-9]+)\)", request.META['HTTP_X_SECONDLIFE_REGION'])
+    region_name = region_matches.group(1).strip()
 
     return {
         'owner_name': request.META['HTTP_X_SECONDLIFE_OWNER_NAME'],
