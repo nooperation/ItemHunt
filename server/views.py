@@ -94,6 +94,10 @@ class ActivateItemView(generic.View):
                 self.log_detailed("FAILED - Invalid object", request)
                 return JsonResponse(json_error_to(player_uuid, 'Invalid item'))
 
+            if not item.enabled:
+                self.log_detailed("FAILED - Item is disabled", request)
+                return JsonResponse(json_error_to(player_uuid, 'Item is disabled'))
+
             try:
                 region = Region.objects.get(name=sl_header['region'])
             except Region.DoesNotExist:
