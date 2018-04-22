@@ -15,8 +15,7 @@ class TransactionTests(TransactionTestCase):
         )
         self.player = Player.objects.create(
             name='First Player',
-            uuid='41f94400-2a3e-408a-9b80-1774724f62af',
-            hunt=self.hunt
+            uuid='41f94400-2a3e-408a-9b80-1774724f62af'
         )
         self.item_prizeA = Item.objects.create(
             uuid='33333333-3333-3333-3333-333333333333',

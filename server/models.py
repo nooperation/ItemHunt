@@ -115,22 +115,15 @@ class Player(models.Model):
             return 0
         return total_points
 
-    uuid = models.CharField(max_length=36, validators=[
+    uuid = models.CharField(max_length=36, unique=True, validators=[
         RegexValidator(
             regex='^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$',
             message='Invalid UUID',
             code='invalid_uuid'
         ),
     ])
-    name = models.CharField(max_length=64)
-    hunt = models.ForeignKey(Hunt, on_delete=models.CASCADE)
+    name = models.CharField(max_length=64, unique=True)
     created_on = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = (
-            ('uuid', 'hunt'),
-            ('name', 'hunt')
-        )
 
 
 class Item(models.Model):
