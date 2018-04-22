@@ -44,8 +44,7 @@ class ActivateItemView(TestCase):
         )
         self.first_player = Player.objects.create(
             uuid='41f94400-2a3e-408a-9b80-1774724f62af',
-            name='First Agent',
-            hunt=self.hunt
+            name='First Agent'
         )
         self.item_creditA = Item.objects.create(
             uuid='11111111-1111-1111-1111-111111111111',
