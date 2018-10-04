@@ -293,7 +293,7 @@ class GetTotalPointsView(generic.View):
                 return JsonResponse(json_error_to(player_uuid, 'Invalid hunt specified'))
 
             try:
-                player = Player.objects.get(uuid=player_uuid)
+                player = Player.objects.get(uuid=player_uuid, hunt=hunt)
             except Player.DoesNotExist:
                 return JsonResponse(json_success_to(player_uuid, {'total_points': 0}))
 
