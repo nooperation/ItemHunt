@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from server.models import *
 import logging
 import re
+from datetime import datetime, date, time, timedelta
 
 log = logging.getLogger(__name__)
 
@@ -122,7 +123,8 @@ class ActivateItemView(generic.View):
                     return JsonResponse(json_error_to(player_uuid, 'Invalid player'))
 
             if item.type == Item.TYPE_CREDIT:
-                activation_count = Transaction.objects.filter(item=item, player=player).count()
+                threshold = datetime.today() - timedelta(minutes=5)
+                activation_count = Transaction.objects.filter(item=item, player=player, created_on__gt=threshold).count()
                 if activation_count != 0:
                     return JsonResponse(json_error_to(player_uuid, {"code": "already_used"}))
             elif item.type == Item.TYPE_PRIZE:
@@ -293,7 +295,7 @@ class GetTotalPointsView(generic.View):
                 return JsonResponse(json_error_to(player_uuid, 'Invalid hunt specified'))
 
             try:
-                player = Player.objects.get(uuid=player_uuid)
+                player = Player.objects.get(uuid=player_uuid, hunt=hunt)
             except Player.DoesNotExist:
                 return JsonResponse(json_success_to(player_uuid, {'total_points': 0}))
 
