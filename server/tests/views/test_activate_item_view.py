@@ -44,8 +44,7 @@ class ActivateItemView(TestCase):
         )
         self.first_player = Player.objects.create(
             uuid='41f94400-2a3e-408a-9b80-1774724f62af',
-            name='First Agent',
-            hunt=self.hunt
+            name='First Agent'
         )
         self.item_creditA = Item.objects.create(
             uuid='11111111-1111-1111-1111-111111111111',
@@ -273,6 +272,17 @@ class ActivateItemView(TestCase):
         self.server_data['points'] = 100
         self.hunt.enabled = False
         self.hunt.save()
+
+        response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(is_json_error(response.json()))
+
+        self.assertEquals(self.first_player.get_total_points(self.hunt), 0)
+
+    def test_activate_disabled_item(self):
+        self.server_data['points'] = 100
+        self.item_creditA.enabled = False
+        self.item_creditA.save()
 
         response = self.post_with_metadata(reverse('server:activate_item'), self.item_creditA, self.server_data)
         self.assertEquals(response.status_code, 200)

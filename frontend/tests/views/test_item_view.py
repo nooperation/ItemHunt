@@ -20,8 +20,7 @@ class ItemViewTests(TestCase):
         )
         self.first_player = Player.objects.create(
             uuid='41f94400-2a3e-408a-9b80-1774724f62af',
-            name='First Agent',
-            hunt=self.hunt
+            name='First Agent'
         )
         self.hunt_token = AuthorizedUsers.objects.create(
             hunt=self.hunt,
