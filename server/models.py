@@ -4,7 +4,8 @@ from django.core.validators import RegexValidator, MinLengthValidator, MinValueV
 from django.contrib.auth.models import User
 import os
 import base64
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from django.utils import timezone
 import logging
 
 log = logging.getLogger(__name__)

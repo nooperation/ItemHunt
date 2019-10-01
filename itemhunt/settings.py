@@ -129,10 +129,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/ec2-user/ItemHunt/static'
 ROOT_PATH = os.path.dirname(__file__)
 
 STATICFILES_DIRS = [
-    os.path.join(ROOT_PATH, 'static')
+    'itemhunt/static'
 ]
 
 LOGGING = {
