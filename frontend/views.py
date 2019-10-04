@@ -314,7 +314,8 @@ class HuntPlayersView(LoginRequiredMixin, generic.View):
 
         try:
             hunt = AuthorizedUsers.objects.get(user=request.user, hunt__id=hunt_id).hunt
-            players = Player.objects.filter(hunt=hunt)
+            player_ids = Transaction.objects.filter(hunt=hunt).values_list('player', flat=True).distinct()
+            players = Player.objects.filter(id__in=player_ids)
 
             request.breadcrumbs.append({
                 'name': hunt.name,
@@ -388,8 +389,17 @@ class PlayerView(LoginRequiredMixin, generic.View):
             player = Player.objects.get(pk=player_id)
             transactions = Transaction.objects.filter(player=player, hunt=hunt).select_related('region')
             total_points = player.get_total_points(hunt)
-            items_purchased = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_PRIZE and transaction.player == player]
-            items_found = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_CREDIT and transaction.player == player]
+            items_purchased = []
+            items_found = []
+
+            try:
+                items_purchased = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_PRIZE and transaction.player == player]
+            except Exception:
+                None
+            try:
+                items_found = [transaction for transaction in transactions if transaction.item.type == Item.TYPE_CREDIT and transaction.player == player]
+            except Exception:
+                None
 
             request.breadcrumbs.append({
                 'name': hunt,

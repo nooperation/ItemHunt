@@ -123,7 +123,7 @@ class ActivateItemView(generic.View):
                     return JsonResponse(json_error_to(player_uuid, 'Invalid player'))
 
             if item.type == Item.TYPE_CREDIT:
-                threshold = datetime.today() - timedelta(minutes=5)
+                threshold = datetime.today() - timedelta(minutes=points)
                 activation_count = Transaction.objects.filter(item=item, player=player, created_on__gt=threshold).count()
                 if activation_count != 0:
                     return JsonResponse(json_error_to(player_uuid, {"code": "already_used"}))

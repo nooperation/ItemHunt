@@ -40,7 +40,7 @@
                 <tr>
                     <td>{{ transaction.get_type_name }}</td>
                     <td>{{ transaction.points }}</td>
-                    <td><a href="{% url 'frontend:view_item' transaction.hunt.id transaction.item.id %}">{{ transaction.item }}</a></td>
+                    <td><a href="{% url 'frontend:view_item' transaction.hunt.id transaction.item_id %}">{{ transaction.item }}</a></td>
                     <td>{{ transaction | transaction_location | safe }}</td>
                     <td>{{ transaction | transaction_item_location| safe }}</td>
                     <td class="text-right">{{ transaction.created_on }}</td>
