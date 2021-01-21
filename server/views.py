@@ -131,7 +131,7 @@ class ActivateItemView(generic.View):
                 else:
                     total_minutes_delay = 30
 
-                threshold = datetime.today() - timedelta(minutes=total_minutes_delay)
+                threshold = timezone.now() - timedelta(minutes=total_minutes_delay)
                 activation_count = Transaction.objects.filter(item=item, player=player, created_on__gt=threshold).count()
                 if activation_count != 0:
                     return JsonResponse(json_error_to(player_uuid, {"code": "already_used"}))
